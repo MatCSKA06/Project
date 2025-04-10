@@ -11,13 +11,17 @@ public:
     { 
         if (!phoneTexture.loadFromFile("Без имени.png")) { // Загрузка текстуры телефона
         }
-        
+        if (!inventoryBackroundTexture.loadFromFile("inventory.jpg")){
+		}
+		inventoryBackroundSprite.setTexture(inventoryBackroundTexture);
+		inventoryBackroundSprite.setPosition(x,y); //масштабируем
+		inventoryBackroundSprite.setScale((size*columns)/inventoryBackroundTexture.getSize().x, (size*rows)/inventoryBackroundTexture.getSize().y);
         for (int i = 0; i < rows; i++) { 
             std::vector<RectangleShape> row;
             for (int j = 0; j < columns; j++) { 
                 RectangleShape cell(Vector2f(size, size));
                 cell.setPosition(x + j * size, y + i * size);
-                cell.setFillColor(Color(139, 69, 19));
+                cell.setFillColor(Color::Transparent);
                 cell.setOutlineThickness(2.f);
                 cell.setOutlineColor(Color(100, 50, 10));
                 row.push_back(cell);
@@ -178,7 +182,9 @@ private:
     std::vector<std::vector<Sprite>> sprites;
     std::vector<std::vector<bool>> hasItem;
     Font font;
-    Texture phoneTexture;
+    Texture phoneTexture; //телефон
+	Texture inventoryBackroundTexture; // инвентарь
+	Sprite inventoryBackroundSprite;
     Vector2f position;
     int rows, columns;
     float size;
@@ -233,9 +239,9 @@ int main() {
     Clock clock;
     Clock animationClock;
     bool flag = false;
-    RectangleShape inv_back(Vector2f(300, 300));
-    inv_back.setFillColor(Color(90, 90, 90));
-    inv_back.setPosition(250, 200);
+    //RectangleShape inv_back(Vector2f(300, 300));
+    //inv_back.setFillColor(Color(90, 90, 90));
+    //inv_back.setPosition(250, 200);
 
     while (window.isOpen()) {
         Event event;
@@ -308,12 +314,13 @@ int main() {
         window.draw(backgroundSprite);
         window.draw(character);
         if (flag) {
-            window.draw(inv_back);
+            //window.draw(inv_back);
             inventory.handleInput(window); // Передаем окно для обработки мыши
         }
         inventory.draw(window);
         window.display();
     }
+
 
     return 0;
 }
