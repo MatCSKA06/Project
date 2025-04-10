@@ -9,13 +9,13 @@ class Inventory
 public: 
     Inventory(float x, float y, int rows, int columns, float size) : position(x, y), rows(rows), columns(columns), size(size) 
     { 
-        if (!phoneTexture.loadFromFile("Без имени.png")) { // Загрузка текстуры телефона
+        if (!phoneTexture.loadFromFile("Без имени.png")) {
         }
         if (!inventoryBackroundTexture.loadFromFile("inventory.jpg")){
-		}
-		inventoryBackroundSprite.setTexture(inventoryBackroundTexture);
-		inventoryBackroundSprite.setPosition(x,y); //масштабируем
-		inventoryBackroundSprite.setScale((size*columns)/inventoryBackroundTexture.getSize().x, (size*rows)/inventoryBackroundTexture.getSize().y);
+        }
+        inventoryBackroundSprite.setTexture(inventoryBackroundTexture);
+        inventoryBackroundSprite.setPosition(x,y);
+        inventoryBackroundSprite.setScale((size*columns)/inventoryBackroundTexture.getSize().x, (size*rows)/inventoryBackroundTexture.getSize().y);
         for (int i = 0; i < rows; i++) { 
             std::vector<RectangleShape> row;
             for (int j = 0; j < columns; j++) { 
@@ -47,9 +47,8 @@ public:
             }
         }
         
-        // Установка телефона в первую ячейку
         items[0][0].setString(""); 
-        hasItem[0][0] = true; // Отмечаем ячейку как занятую
+        hasItem[0][0] = true;
         cursor.setSize(Vector2f(size, size));
         cursor.setFillColor(Color(0, 0, 0, 0));
         cursor.setOutlineThickness(3.f);
@@ -59,6 +58,8 @@ public:
     
     void draw(RenderWindow& window) {
         if (!isVisible) return;
+        
+        window.draw(inventoryBackroundSprite);
         
         for (auto& row : grid) {
             for (auto& cell : row) {
@@ -71,13 +72,13 @@ public:
                 if (items[i][j].getString() != "") {
                     window.draw(items[i][j]);
                 }
-                if (hasItem[i][j]) { // Рисуем спрайт, если ячейка занята
+                if (hasItem[i][j]) {
                     window.draw(sprites[i][j]);
                 }
             }
         }
         if (isHolding) {
-            window.draw(heldSprite); // Рисуем удерживаемый предмет
+            window.draw(heldSprite);
         }
         window.draw(cursor);
     }
@@ -104,7 +105,6 @@ public:
     void handleInput(RenderWindow& window) {
         if (!isVisible) return;
 
-        // Управление курсором с клавиатуры
         if (Keyboard::isKeyPressed(Keyboard::D) && cursorX < columns - 1) {
             cursorX++; 
             updateCursorPosition();
@@ -126,7 +126,6 @@ public:
             while (Keyboard::isKeyPressed(Keyboard::S)) {}
         }
         
-        // Перетаскивание 
         Vector2f mousePos = window.mapPixelToCoords(Mouse::getPosition(window));
 
         if (Mouse::isButtonPressed(Mouse::Left) && !isHolding) {
@@ -166,7 +165,7 @@ public:
                 }
                 if (!isHolding) break;
             }
-            if (isHolding) { // Возврат на исходную позицию, если не удалось разместить
+            if (isHolding) {
                 items[cursorY][cursorX].setString(heldItem);
                 hasItem[cursorY][cursorX] = true;
                 sprites[cursorY][cursorX] = heldSprite;
@@ -182,9 +181,9 @@ private:
     std::vector<std::vector<Sprite>> sprites;
     std::vector<std::vector<bool>> hasItem;
     Font font;
-    Texture phoneTexture; //телефон
-	Texture inventoryBackroundTexture; // инвентарь
-	Sprite inventoryBackroundSprite;
+    Texture phoneTexture;
+    Texture inventoryBackroundTexture;
+    Sprite inventoryBackroundSprite;
     Vector2f position;
     int rows, columns;
     float size;
@@ -194,7 +193,7 @@ private:
     bool isHolding = false; 
     std::string heldItem; 
     Sprite heldSprite;
-    Vector2f mouseOffset; // Для перетаскивания
+    Vector2f mouseOffset;
 
     void updateCursorPosition() {
         cursor.setPosition(position.x + cursorX * size, position.y + cursorY * size);
@@ -239,9 +238,6 @@ int main() {
     Clock clock;
     Clock animationClock;
     bool flag = false;
-    //RectangleShape inv_back(Vector2f(300, 300));
-    //inv_back.setFillColor(Color(90, 90, 90));
-    //inv_back.setPosition(250, 200);
 
     while (window.isOpen()) {
         Event event;
@@ -314,13 +310,11 @@ int main() {
         window.draw(backgroundSprite);
         window.draw(character);
         if (flag) {
-            //window.draw(inv_back);
-            inventory.handleInput(window); // Передаем окно для обработки мыши
+            inventory.handleInput(window);
         }
         inventory.draw(window);
         window.display();
     }
-
 
     return 0;
 }
