@@ -2,13 +2,18 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <map>
+#include <iostream>
 
 using namespace sf;
 
 class Inventory {
 private:
+    std::map<std::string, Texture> itemTextures;
     struct DroppedItem {
         std::string name;
+        std::string type;
+        std::string description;
         Sprite sprite;
         Vector2f position;
         Text label;
@@ -65,7 +70,7 @@ public:
             (size * columns) / inventoryBackroundTexture.getSize().x,
             (size * rows) / inventoryBackroundTexture.getSize().y
         );
-        Sprite dropHeldItem();
+        Sprite dropHeldItem;
 
         for (int i = 0; i < rows; i++) {
             std::vector<RectangleShape> row;
@@ -91,10 +96,10 @@ public:
                 items[i][j].setFillColor(Color::White);
                 items[i][j].setPosition(x + j * size + 10, y + i * size + 10);
 
-                sprites[i][j].setTexture(phoneTexture);
+                //sprites[i][j].setTexture(phoneTexture);
                 sprites[i][j].setPosition(x + j * size + 5, y + i * size + 5);
-                float scale = (size - 10) / phoneTexture.getSize().x;
-                sprites[i][j].setScale(scale, scale);
+                //float scale = (size - 10) / phoneTexture.getSize().x;
+                //sprites[i][j].setScale(scale, scale);
             }
         }
 
@@ -105,6 +110,19 @@ public:
         cursor.setOutlineThickness(3.f);
         cursor.setOutlineColor(Color::Yellow);
         cursor.setPosition(x, y);
+    }
+    void loadItemTexture(const std::string& itemName, const std::string& textureFile)
+    {
+        Texture texture;
+        if (texture.loadFromFile(textureFile))
+        {
+            itemTextures[itemName]=texture;
+        }
+        else
+        {
+            std::cout<<"Error load texture"<< itemName<<std::endl;
+
+        }
     }
 
     void draw(RenderWindow& window) {
@@ -129,17 +147,18 @@ public:
         window.draw(cursor);
     }
 
-    bool addItem(const std::string& item) {
+    bool addItem(const std::string& item) { //this is for future
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
                 if (!hasItem[i][j]) {
                     items[i][j].setString(item);
                     hasItem[i][j] = true;
-                    sprites[i][j].setTexture(phoneTexture);
+                    sprites[i][j].setTexture(itemTextures[item]);
                     sprites[i][j].setPosition(position.x + j * size + 5, position.y + i * size + 5);
-                    float scale = (size - 10) / phoneTexture.getSize().x;
+                    float scale = (size - 10) / itemTextures[item].getSize().x;
                     sprites[i][j].setScale(scale, scale);
                     return true;
+                    
                 }
             }
         }
@@ -218,10 +237,15 @@ public:
             if (!placedInInventory) {
                 DroppedItem dropped;
                 dropped.name = heldItem;
-                dropped.sprite = heldSprite;
+                if( heldItem=="Phone")
+                {
+                    dropped.type = "Gadget";
+                    dropped.description ="Used to call lovely pididi";
+                }
+                //else if( heldItem==...)  ITS FOR FUTURE WE NEED TO ADD LIKE THIS
                 dropped.position = characterPosition - Vector2f(0, -40);
+                dropped.sprite = heldSprite;
                 dropped.sprite.setPosition(dropped.position);
-
                 dropped.label.setFont(font);
                 dropped.label.setString(dropped.name);
                 dropped.label.setCharacterSize(18);
@@ -294,7 +318,8 @@ int main() {
     Inventory inventory(200, 200, 4, 4, 150);
     const float minX = 100.f, maxX = 1200.f;
     const float minY = 100.f, maxY = 1000.f;
-
+    inventory.loadItemTexture("Phone","phone.png");
+    //for future
     Clock clock;
     Clock animationClock;
     bool flag = false;
@@ -308,7 +333,8 @@ int main() {
 
         Vector2f movement(0.f, 0.f);
         bool spriteChanged = false;
-
+        if(!flag)
+        {
         if (Keyboard::isKeyPressed(Keyboard::A)) {
             movement.x = -moveSpeed;
             if (currentSprite != A) { currentSprite = A; spriteChanged = true; }
@@ -325,7 +351,7 @@ int main() {
             movement.y = moveSpeed;
             if (currentSprite != S) { currentSprite = S; spriteChanged = true; }
         }
-
+        }
         float charWidth = frameWidth * character.getScale().x;
         float charHeight = frameHeight * character.getScale().y;
 
@@ -390,7 +416,7 @@ int main() {
                     infoText.setFont(inventory.getFont()); 
                     infoText.setCharacterSize(16);
                     infoText.setFillColor(Color::White);
-                    infoText.setString("Name: " + item.name + "\nType: Gadget");
+                    infoText.setString("Name: " + item.name + "\nType: Gadget"+ item.type + "\n" + item.description);
                     infoText.setPosition(infoBox.getPosition() + Vector2f(10, 5));
             
                     
