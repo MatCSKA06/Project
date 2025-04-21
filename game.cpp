@@ -4,49 +4,48 @@
 #include <cmath>
 #include <map>
 #include <iostream>
-
+#include <algorithm>
 using namespace sf;
 
 class Inventory {
 private:
- //словарь хранящий предметы 
     std::map<std::string, Texture> itemTextures;
- //это структура которая описывает предмет выброшенный из инвентаря
     struct DroppedItem {
         std::string name;
         std::string type;
         std::string description;
+        float alpha =0.f; //capacity of transparent
         Sprite sprite;
         Vector2f position;
         Text label;
     };
 
-    std::vector<std::vector<RectangleShape>> grid; // сетка инвентаря
-    std::vector<std::vector<Text>> items;//названия предметов в ячейках
-    std::vector<std::vector<Sprite>> sprites;//представление предметов ну короче отрисовка
-    std::vector<std::vector<bool>> hasItem; //флаг есть ли предмет в ячейке
-    std::vector<DroppedItem> droppedItems; //cписок выброшенных предметов для работы с всплывающей табличкой с информацией о предмете 
+    std::vector<std::vector<RectangleShape>> grid;
+    std::vector<std::vector<Text>> items;
+    std::vector<std::vector<Sprite>> sprites;
+    std::vector<std::vector<bool>> hasItem;
+    std::vector<DroppedItem> droppedItems;
 
     Font font;
-    //Texture phoneTexture; уже лишнее 
+    Texture phoneTexture;
     Texture inventoryBackroundTexture;
-    Sprite inventoryBackroundSprite; // спрайт фона
-    Vector2f position; // позиция верхнего левого угла инвентаря для ттго где он распологается
+    Sprite inventoryBackroundSprite;
+    Vector2f position;
     int rows, columns;
-    float size; // размер
-    RectangleShape cursor; //рамка выбора ячейки
-    int cursorX = 0; //  позиция курсора в интвентаре
+    float size;
+    RectangleShape cursor;
+    int cursorX = 0;
     int cursorY = 0;
-    bool isHolding = false; // держит ли игрок предмет
-    std::string heldItem; //название удерживаемого предмета
-    Sprite heldSprite; //   отрисовка удерживаемого предмета
-    Vector2f mouseOffset; // смещение между мышью и углом спрайта
+    bool isHolding = false;
+    std::string heldItem;
+    Sprite heldSprite;
+    Vector2f mouseOffset;
 
-    void updateCursorPosition() { //обновляет визуальную позицию курсора в зависимости от cursorX и тп
+    void updateCursorPosition() {
         cursor.setPosition(position.x + cursorX * size, position.y + cursorY * size);
     }
-//добавляет предмет в конкретную ячейку матрицы интвернатаря с заданной текстурой.
-    void addItemAtPosition(int row, int col, const std::string& name, const Texture& texture) { 
+
+    void addItemAtPosition(int row, int col, const std::string& name, const Texture& texture) {
         items[row][col].setString(name);
         hasItem[row][col] = true;
         sprites[row][col].setTexture(texture);
@@ -57,10 +56,9 @@ private:
 
 public:
     bool isVisible = false;
-        const Font& getFont() const{ //шрифт
+        const Font& getFont() const{
             return font;
         }
-//здесь происходит создание инвентаря задача его координат по двум осям и отрисовка( я решил что начальному предмету в интвенатре быть!)
     Inventory(float x, float y, int rows, int columns, float size) :
         position(x, y), rows(rows), columns(columns), size(size)
     {
@@ -73,8 +71,8 @@ public:
             (size * columns) / inventoryBackroundTexture.getSize().x,
             (size * rows) / inventoryBackroundTexture.getSize().y
         );
-        Sprite dropHeldItem; // найдешь снизу
-// снизу начиная с for и до push back происходит создание ячеек инвентаря
+        Sprite dropHeldItem;
+
         for (int i = 0; i < rows; i++) {
             std::vector<RectangleShape> row;
             for (int j = 0; j < columns; j++) {
@@ -105,7 +103,7 @@ public:
                 //sprites[i][j].setScale(scale, scale);
             }
         }
-//телефон как начальный предмет
+
         addItemAtPosition(0, 0, "Phone", phoneTexture);
 
         cursor.setSize(Vector2f(size, size));
@@ -114,7 +112,6 @@ public:
         cursor.setOutlineColor(Color::Yellow);
         cursor.setPosition(x, y);
     }
-//загружает текстуру предмета по имени и сохраняет её в itemTextures
     void loadItemTexture(const std::string& itemName, const std::string& textureFile)
     {
         Texture texture;
@@ -128,7 +125,7 @@ public:
 
         }
     }
-//Рисует фон сетку предметы названия спрайт удерж предмета курсор
+
     void draw(RenderWindow& window) {
         if (!isVisible) return;
 
@@ -150,7 +147,7 @@ public:
 
         window.draw(cursor);
     }
-//добавляет предмет в первую свободную ячейку  и использует itemTextures для установки текстуры и масштабирует спрайт
+
     bool addItem(const std::string& item) { //this is for future
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
@@ -169,18 +166,16 @@ public:
         return false;
     }
 
-    void setVisibility(bool visibility) { //показывать или скрывать инвентарь аа??
+    void setVisibility(bool visibility) {
         isVisible = visibility;
     }
-//обрабатывает нажатия клавиш для перемещения курсора, реализует перетаскивание предметов мышкой
-//если предмет не помещён обратно в инвентарь, создаётся выброшенный предмет (DroppedItem)
-// BIG SHIT GOVNO PIDIDI
+
     void handleInput(RenderWindow& window, Vector2f characterPosition) {
         if (!isVisible) return;
 
         if (Keyboard::isKeyPressed(Keyboard::D) && cursorX < columns - 1) {
             cursorX++;
-            updateCursorPosition(); 
+            updateCursorPosition();
             while (Keyboard::isKeyPressed(Keyboard::D)) {}
         }
         if (Keyboard::isKeyPressed(Keyboard::A) && cursorX > 0) {
@@ -263,7 +258,7 @@ public:
             }
         }
     }
-//проверяет сть ли поблизости выброшенные предметы и подбирает их в инвентарь если игрок рядом.
+
     void tryPickupItem(Vector2f characterPos) {
         float pickupRadius = 80.f;
         for (auto it = droppedItems.begin(); it != droppedItems.end(); ++it) {
@@ -278,11 +273,13 @@ public:
             }
         }
     }
-//геттер -он возвращает список выброшенных предметов для отображения их снаружи класса
     const std::vector<DroppedItem>& getDroppedItems() const {
         return droppedItems;
-    } 
-    Sprite dropHeldItem() //возвращает спрайт удерживаемого предмета и сбрасывает флаг удержания (isHolding = false)
+    }
+    std::vector<DroppedItem>& getDroppedItems() {
+        return droppedItems;
+    }
+    Sprite dropHeldItem()
     {
         Sprite dropped;
         if(isHolding)
@@ -324,13 +321,14 @@ int main() {
     Inventory inventory(200, 200, 4, 4, 150);
     const float minX = 100.f, maxX = 1200.f;
     const float minY = 100.f, maxY = 1000.f;
-    inventory.loadItemTexture("Phone","phone.png"); // так происходит загрузка  предмтов в игру , для других пишем аналогичную строку ( название, название файла)
+    inventory.loadItemTexture("Phone","phone.png");
     //for future
     Clock clock;
     Clock animationClock;
     bool flag = false;
 
     while (window.isOpen()) {
+        sf::Time deltaTime=clock.restart(); //time beetwen frame
         Event event;
         while (window.pollEvent(event)) {
             if (event.type == Event::Closed)
@@ -405,27 +403,33 @@ int main() {
 
         if (flag)
             inventory.handleInput(window, character.getPosition());
-            for (const auto& item : inventory.getDroppedItems()) {
+            for (auto& item : inventory.getDroppedItems()) {
                 window.draw(item.sprite);
             
                 FloatRect itemBounds = item.sprite.getGlobalBounds();
                 FloatRect characterBounds = character.getGlobalBounds();
-            // табличка
-                if (characterBounds.intersects(itemBounds)) {
-                    RectangleShape infoBox(Vector2f(150, 60));
-                    infoBox.setFillColor(Color(0, 0, 0, 180));
-                    infoBox.setOutlineColor(Color::White);
+                bool isNear=characterBounds.intersects(itemBounds);
+                if(isNear && item.alpha<255.f)
+                    item.alpha+=300.f*deltaTime.asSeconds();
+                else if(!isNear && item.alpha>0.f)
+                    item.alpha-=300.f*deltaTime.asSeconds();
+                item.alpha=std::clamp(item.alpha, 0.f, 255.f);
+
+                if (item.alpha> 0.f) {
+                    RectangleShape infoBox(Vector2f(200, 80));
+                    infoBox.setFillColor(Color(0, 0, 0, static_cast<Uint8>(item.alpha)));
+                    infoBox.setOutlineColor(Color(0,255,0,static_cast<Uint8>(item.alpha)));
                     infoBox.setOutlineThickness(2);
                     infoBox.setPosition(item.sprite.getPosition() + Vector2f(0, -70));
             
                     Text infoText;
                     infoText.setFont(inventory.getFont()); 
                     infoText.setCharacterSize(16);
-                    infoText.setFillColor(Color::White);
-                    infoText.setString("Name: " + item.name + "\nType: Gadget"+ item.type + "\n" + item.description);
+                    infoText.setFillColor(Color(255,255,255,static_cast<Uint8>(item.alpha)));
+                    infoText.setString("Name: " + item.name + "\nType: Gadget" + item.type + "\n" + item.description);
                     infoText.setPosition(infoBox.getPosition() + Vector2f(10, 5));
             
-                    // шрифт
+                    
                     static Font cachedFont;
                     static bool fontLoaded = false;
                     if (!fontLoaded) {
@@ -434,7 +438,7 @@ int main() {
                     }
                     infoText.setFont(cachedFont);
             
-                    window.draw(infoBox); // window.draw думаю сам поймешь что и как отрисовывается
+                    window.draw(infoBox);
                     window.draw(infoText);
                 }
             }
