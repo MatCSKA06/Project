@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 
+// Загрузка текстур для статических положений
 Player::Player(const sf::Vector2u& windowSize) : Player_Velocity(0, 0) {
     if (!Player_Texture_Up.loadFromFile("Assets/Player_Texture_Up.png"))
         std::cerr << "Error loading texture";
@@ -21,19 +22,30 @@ Player::Player(const sf::Vector2u& windowSize) : Player_Velocity(0, 0) {
     if (!Player_Texture_DownRight.loadFromFile("Assets/Player_Texture_DownRight.png"))
         std::cerr << "Error loading texture";
 
+    // Загрузка текстур для анимации
+    if (!Player_Texture_GoingDown1.loadFromFile("Assets/Player_Texture_GoingDown1.png"))
+        std::cerr << "Error loading texture";
+    if (!Player_Texture_GoingDown2.loadFromFile("Assets/Player_Texture_GoingDown2.png"))
+        std::cerr << "Error loading texture";
+    if (!Player_Texture_GoingUp1.loadFromFile("Assets/Player_Texture_GoingUp1.png"))
+        std::cerr << "Error loading texture";
+    if (!Player_Texture_GoingUp2.loadFromFile("Assets/Player_Texture_GoingUp2.png"))
+        std::cerr << "Error loading texture";
+
+    // Устанавливаем положение, в котором спавнится игрок
     Player_Sprite.setTexture(Player_Texture_Down);
 
+    // Всё это устанавливает позицию спавна игрока (чтобы тот спавнился в центре окна)
     sf::Vector2u Texture_Size_Player = Player_Texture_Down.getSize();
     float Window_Center_X = windowSize.x / 2.0f;
     float Window_Center_Y = windowSize.y / 2.0f;
-
     float Position_Of_Player_Spawn_X = Window_Center_X - ((Texture_Size_Player.x) / 2.0f);
     float Position_Of_Player_Spawn_Y = Window_Center_Y - ((Texture_Size_Player.y) / 2.0f);
     Player_Sprite.setPosition(Position_Of_Player_Spawn_X, Position_Of_Player_Spawn_Y);
 }
 
 Player::~Player() {
-    // Пока пустой
+    // Пока пустой деструктор
 }
 
 void Player::Keyboard_Handle_Input() { // Движение
@@ -46,38 +58,30 @@ void Player::Keyboard_Handle_Input() { // Движение
     if (up && left) {
         Player_Velocity.x = -1;
         Player_Velocity.y = -1;
-        Player_Sprite.setTexture(Player_Texture_UpLeft);
     }
     else if (up && right) {
         Player_Velocity.x = 1;
         Player_Velocity.y = -1;
-        Player_Sprite.setTexture(Player_Texture_UpRight);
     }
     else if (down && left) {
         Player_Velocity.x = -1;
         Player_Velocity.y = 1;
-        Player_Sprite.setTexture(Player_Texture_DownLeft);
     }
     else if (down && right) {
         Player_Velocity.x = 1;
         Player_Velocity.y = 1;
-        Player_Sprite.setTexture(Player_Texture_DownRight);
     }
     else if (up) {
         Player_Velocity.y = -1;
-        Player_Sprite.setTexture(Player_Texture_Up);
     }
     else if (down) {
         Player_Velocity.y = 1;
-        Player_Sprite.setTexture(Player_Texture_Down);
     }
     else if (left) {
         Player_Velocity.x = -1;
-        Player_Sprite.setTexture(Player_Texture_Left);
     }
     else if (right) {
         Player_Velocity.x = 1;
-        Player_Sprite.setTexture(Player_Texture_Right);
     }
 
     if (Player_Velocity.x != 0 && Player_Velocity.y != 0) {
@@ -92,5 +96,114 @@ void Player::Draw_Player(sf::RenderWindow& window) {
 }
 
 void Player::Update_Player_Position(float deltaTime) {
+    // Сдвигаем
     Player_Sprite.move(Player_Velocity * Player_Speed * deltaTime);
+
+    // Если движется строго вниз — анимируем
+    if ((Player_Velocity.y > 0.f) && (Player_Velocity.x == 0.f)) {
+        lastDirection = PlayerDirection::Down;
+        walkDownTimer += deltaTime;
+        if (walkDownTimer >= walkDownSwitchTime) {
+            walkDownTimer -= walkDownSwitchTime;
+            walkDownToggle = !walkDownToggle;
+        }
+        Player_Sprite.setTexture(
+            walkDownToggle 
+              ? Player_Texture_GoingDown1 
+              : Player_Texture_GoingDown2
+        );
+    }
+    // Если движется строго вверх
+    else if ((Player_Velocity.y < 0.f) && (Player_Velocity.x == 0.f)) {
+    // идём вверх — анимируем между двумя кадрами
+        lastDirection = PlayerDirection::Up;
+        walkUpTimer += deltaTime;
+        if (walkUpTimer >= walkDownSwitchTime) {   // используем уже существующий switch time
+            walkUpTimer -= walkDownSwitchTime;
+            walkUpToggle = !walkUpToggle;
+        }
+        Player_Sprite.setTexture(
+            walkUpToggle
+            ? Player_Texture_GoingUp1
+            : Player_Texture_GoingUp2
+        );
+        walkDownTimer  = 0.f;
+        walkDownToggle = false;
+    }
+    // Если движется влево
+    else if ((Player_Velocity.x < 0.f) && (Player_Velocity.y == 0.f)) {
+        lastDirection = PlayerDirection::Left;
+        Player_Sprite.setTexture(Player_Texture_Left);
+        walkDownTimer = 0.f;
+        walkDownToggle = false;
+    }
+    // Если движется вправо
+    else if ((Player_Velocity.x > 0.f) && (Player_Velocity.y == 0.f)){
+        lastDirection = PlayerDirection::Right;
+        Player_Sprite.setTexture(Player_Texture_Right);
+        walkDownTimer = 0.f;
+        walkDownToggle = false;
+    }
+    // Если движется вправо и вверх
+    else if ((Player_Velocity.x > 0.f) && (Player_Velocity.y > 0.f)) {
+        lastDirection = PlayerDirection::Right;
+        Player_Sprite.setTexture(Player_Texture_DownRight);
+        walkDownTimer = 0.f;
+        walkDownToggle = false;
+    }
+    // Если движется вправо и вниз
+    else if ((Player_Velocity.x > 0.f) && (Player_Velocity.y < 0.f)) {
+        lastDirection = PlayerDirection::Right;
+        Player_Sprite.setTexture(Player_Texture_UpRight);
+        walkDownTimer = 0.f;
+        walkDownToggle = false;
+    }
+    // Если движется влево и вверх
+    else if ((Player_Velocity.x < 0.f) && (Player_Velocity.y > 0.f)) {
+        lastDirection = PlayerDirection::Right;
+        Player_Sprite.setTexture(Player_Texture_DownLeft);
+        walkDownTimer = 0.f;
+        walkDownToggle = false;
+    }
+    // Если движется влево и вниз
+    else if ((Player_Velocity.x < 0.f) && (Player_Velocity.y < 0.f)) {
+        lastDirection = PlayerDirection::Right;
+        Player_Sprite.setTexture(Player_Texture_UpLeft);
+        walkDownTimer = 0.f;
+        walkDownToggle = false;
+    }
+
+    // Если стоит — показываем последний кадр игравшей анимации
+    else {  // Player_Velocity == (0,0)
+        walkDownTimer = 0.f;
+        walkDownToggle = false;
+        walkDownTimer = walkUpTimer = 0.f;
+        walkDownToggle = walkUpToggle = false;
+        switch (lastDirection) {
+            case PlayerDirection::Down:
+                Player_Sprite.setTexture(Player_Texture_Down);
+                break;
+            case PlayerDirection::Up:
+                Player_Sprite.setTexture(Player_Texture_Up);
+                break;
+            case PlayerDirection::Left:
+                Player_Sprite.setTexture(Player_Texture_Left);
+                break;
+            case PlayerDirection::Right:
+                Player_Sprite.setTexture(Player_Texture_Right);
+                break;
+            case PlayerDirection::UpRight:
+                Player_Sprite.setTexture(Player_Texture_UpRight);
+                break;
+            case PlayerDirection::UpLeft:
+                Player_Sprite.setTexture(Player_Texture_UpLeft);
+                break;
+            case PlayerDirection::DownRight:
+                Player_Sprite.setTexture(Player_Texture_DownRight);
+                break;
+            case PlayerDirection::DownLeft:
+                Player_Sprite.setTexture(Player_Texture_DownLeft);
+                break;
+        }
+    }
 }
