@@ -246,4 +246,4 @@ sf::Sprite Inventory::dropHeldItem() {
         isHolding = false;
     }
     return dropped;
-}
+} 

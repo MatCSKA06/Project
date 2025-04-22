@@ -38,7 +38,7 @@ private:
     sf::Texture Player_Texture;
 
     sf::Vector2f Player_Velocity;
-    float Player_Speed = 400.0f;
+    float Player_Speed = 600.0f;
 
     // Текстуры для 8 проекций положения в данный момент
     sf::Texture Player_Texture_Up;
@@ -71,6 +71,6 @@ private:
     PlayerDirection lastDirection = PlayerDirection::Down;
 
     // анимационные переменные
-    const float walkDownSwitchTime = 0.6f;  // секунда на кадр
+    const float walkDownSwitchTime = 0.4f;  // секунда на кадр
 
 };
