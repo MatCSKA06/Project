@@ -54,6 +54,14 @@ Inventory::Inventory(float x, float y, int rows, int columns, float size)
     cursor.setOutlineThickness(3.f);
     cursor.setOutlineColor(sf::Color::Yellow);
     cursor.setPosition(x, y);
+    //table in inventory
+    infoBox.setSize(sf::Vector2f(200,100));
+    infoBox.setFillColor(sf::Color(0, 0, 0, 200));
+    infoBox.setOutlineColor(sf::Color::White);
+    infoBox.setOutlineThickness(2.f);
+    infoText.setFont(font);
+    infoText.setCharacterSize(16);
+    infoText.setFillColor(sf::Color::White);
 }
 
 void Inventory::updateCursorPosition() {
@@ -106,6 +114,29 @@ void Inventory::draw(sf::RenderWindow& window) {
         window.draw(heldSprite);
 
     window.draw(cursor);
+    //adding a table
+    if(isVisible)
+    {
+        
+        if(hasItem[cursorY][cursorX]);
+        {   std::string hoveredItem=items[cursorY][cursorX].getString();
+            auto it=itemInfoMap.find(hoveredItem);
+            if(it !=itemInfoMap.end()){
+            std::string info = "Name:"+hoveredItem+"\nType:"+it->second.type+"\n"+it->second.description;
+            infoText.setString(info);
+            sf::Vector2f boxPos  =grid[cursorY][cursorX].getPosition()+sf::Vector2f(size+5,0);
+            if(boxPos.x +infoBox.getSize().x>window.getSize().x)
+            {
+                boxPos.x=grid[cursorY][cursorX].getPosition().x-infoBox.getSize().x-5;
+            }
+            infoBox.setPosition(boxPos);
+            infoText.setPosition(boxPos+sf::Vector2f(10,10));
+            window.draw(infoBox);
+            window.draw(infoText);
+            }
+        }
+    }
+        //thats all
 }
 
 bool Inventory::addItem(const std::string& item) {

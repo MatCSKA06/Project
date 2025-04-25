@@ -37,6 +37,8 @@ private:
     std::string description;
 	};
     
+    sf::RectangleShape infoBox; //adding a table in inventory
+    sf::Text infoText; //its too
     std::map<std::string, sf::Texture> itemTextures;
     std::map<std::string, ItemInfo> itemInfoMap;
     std::vector<std::vector<sf::RectangleShape>> grid;
