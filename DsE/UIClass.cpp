@@ -62,6 +62,34 @@ Inventory::Inventory(float x, float y, int rows, int columns, float size)
     infoText.setFont(font);
     infoText.setCharacterSize(16);
     infoText.setFillColor(sf::Color::White);
+
+    //add a right and left hand slots 
+    rightHand.setSize(sf::Vector2f(size,size));
+    rightHand.setFillColor(sf::Color::Transparent);
+    rightHand.setOutlineThickness(2.f);
+    rightHand.setOutlineColor(sf::Color::Cyan);
+    rightHand.setPosition(position.x+columns*size+50, position.y); //indent right for 50 pixels, but we dont change a position OY
+
+    leftHand.setSize(sf::Vector2f(size,size));
+    leftHand.setFillColor(sf::Color::Transparent);
+    leftHand.setOutlineThickness(2.f);
+    leftHand.setOutlineColor(sf::Color::Cyan);
+    leftHand.setPosition(position.x+columns*size+50, position.y+size+20); //indent right for 50 pixels, but we CHANGE a position OY
+
+    //texts for hands
+    rightHandItemText.setFont(font);
+    rightHandItemText.setCharacterSize(16);
+    rightHandItemText.setFillColor(sf::Color::White);
+    rightHandItemText.setPosition(rightHand.getPosition()+sf::Vector2f(10,10));
+
+    leftHandItemText.setFont(font);
+    leftHandItemText.setCharacterSize(16);
+    leftHandItemText.setFillColor(sf::Color::White);
+    leftHandItemText.setPosition(leftHand.getPosition()+sf::Vector2f(10,10));
+
+
+
+
 }
 
 void Inventory::updateCursorPosition() {
@@ -136,7 +164,25 @@ void Inventory::draw(sf::RenderWindow& window) {
             }
         }
     }
-        //thats all
+    //thats all
+
+    ///////////////////////////
+
+    //draw a hand slots
+    window.draw(rightHand);
+    window.draw(leftHand);
+    if(hasRightHandItem)
+        window.draw(rightHandSprite);
+    else
+        window.draw(rightHandItemText);
+    if(hasLeftHandItem)
+        window.draw(leftHandSprite);
+    else
+        window.draw(leftHandItemText);
+
+
+
+        
 }
 
 bool Inventory::addItem(const std::string& item) {
@@ -181,6 +227,89 @@ void Inventory::handleInput(sf::RenderWindow& window, sf::Vector2f characterPosi
         updateCursorPosition();
         while (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {}
     }
+    // add a control of hand slots
+if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
+{
+    if (hasItem[cursorY][cursorX])
+    {
+        //save the new add object
+        sf::Sprite newItemSprite = sprites[cursorY][cursorX];
+        std::string newItemName = items[cursorY][cursorX].getString();
+
+        if (hasRightHandItem)
+        {
+            //if left hand is free...
+            if (!hasLeftHandItem)
+            {
+                leftHandItemName = rightHandItemName;
+                leftHandSprite = rightHandSprite;
+                //set the item sprite slightly inside the left hand slot (offset by 5 pixels)
+                leftHandSprite.setPosition(leftHand.getPosition() + sf::Vector2f(5, 5));
+                hasLeftHandItem = true; //now this
+            }
+            else
+            {
+                //if all hands r busy
+                addItem(rightHandItemName);
+            }
+        }
+        //add to the right hand
+        rightHandItemName = newItemName;
+        rightHandSprite = newItemSprite;
+        rightHandSprite.setPosition(rightHand.getPosition() + sf::Vector2f(5, 5));
+        hasRightHandItem = true;
+
+        //delete from main inventory
+        items[cursorY][cursorX].setString("");
+        sprites[cursorY][cursorX].setTexture(sf::Texture()); //delete
+        hasItem[cursorY][cursorX] = false;
+
+        while (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)) {}
+    }
+}
+
+if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2))
+{
+    if (hasItem[cursorY][cursorX])
+    {
+        //save the new add object
+        sf::Sprite newItemSprite = sprites[cursorY][cursorX];
+        std::string newItemName = items[cursorY][cursorX].getString();
+
+        if (hasLeftHandItem)
+        {
+            //if right hand is free...
+            if (!hasRightHandItem)
+            {
+                rightHandItemName = leftHandItemName;
+                rightHandSprite = leftHandSprite;
+                //set the item sprite slightly inside the right hand slot (offset by 5 pixels)
+                rightHandSprite.setPosition(rightHand.getPosition() + sf::Vector2f(5, 5));
+                hasRightHandItem = true; //and now this
+            }
+            else
+            {
+                //if all hands r busy
+                addItem(leftHandItemName);
+            }
+        }
+        //add to the left hand
+        leftHandItemName = newItemName;
+        leftHandSprite = newItemSprite;
+        leftHandSprite.setPosition(leftHand.getPosition() + sf::Vector2f(5, 5));
+        hasLeftHandItem = true;
+
+        //delete from main inventory
+        items[cursorY][cursorX].setString("");
+        sprites[cursorY][cursorX].setTexture(sf::Texture()); //delete
+        hasItem[cursorY][cursorX] = false;
+
+        while (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)) {}
+    }
+}
+
+
+
 
     sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 

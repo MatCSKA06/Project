@@ -46,7 +46,19 @@ private:
     std::vector<std::vector<sf::Sprite>> sprites;
     std::vector<std::vector<bool>> hasItem;
     std::vector<DroppedItem> droppedItems;
-
+    
+    //adding a hand inventory
+    sf::RectangleShape rightHand;
+    sf::RectangleShape leftHand;
+    sf::Text rightHandItemText;
+    sf::Text leftHandItemText;
+    std::string rightHandItemName;
+    std::string leftHandItemName;
+    sf::Sprite rightHandSprite;
+    sf::Sprite leftHandSprite;
+    bool hasRightHandItem = false; //first this
+    bool hasLeftHandItem = false; //tihs too
+// end
     sf::Font font;
     sf::Texture phoneTexture;
     sf::Texture inventoryBackroundTexture;

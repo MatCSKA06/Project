@@ -84,31 +84,18 @@ int main() {
                 item.alpha += 300.f * deltaTime;
             else if (!isNear && item.alpha > 0.f)
                 item.alpha -= 300.f * deltaTime;
-
             item.alpha = std::clamp(item.alpha, 0.f, 255.f);
-
-            if (item.alpha > 0.f) {
-                RectangleShape infoBox(Vector2f(200, 80));
-                infoBox.setFillColor(Color(0, 0, 0, static_cast<Uint8>(item.alpha)));
-                infoBox.setOutlineColor(Color(0, 255, 0, static_cast<Uint8>(item.alpha)));
-                infoBox.setOutlineThickness(2);
-                infoBox.setPosition(item.sprite.getPosition() + Vector2f(0, -70));
-
-                Text infoText;
-                static Font cachedFont;
-                static bool fontLoaded = false;
-                if (!fontLoaded) {
-                    cachedFont.loadFromFile("Fonts/arialmt.ttf");
-                    fontLoaded = true;
-                }
-                infoText.setFont(cachedFont);
-                infoText.setCharacterSize(16);
-                infoText.setFillColor(Color(255, 255, 255, static_cast<Uint8>(item.alpha)));
-                infoText.setString("Name: " + item.name + "\nType: " + item.type + "\n" + item.description);
-                infoText.setPosition(infoBox.getPosition() + Vector2f(10, 5));
-
-                window.draw(infoBox);
-                window.draw(infoText);
+            //adding a "TRYPICKUP" Zone for the items
+            if (item.alpha>0.f) {
+                sf::CircleShape pickUpZone(80.f); 
+                pickUpZone.setOrigin(80.f,80.f); 
+                //het a left-up angle of the sprite position, add a vector from this angle to the center
+                pickUpZone.setPosition(item.sprite.getPosition()+sf::Vector2f(item.sprite.getGlobalBounds().width/2,item.sprite.getGlobalBounds().height/2));
+                // make a semi-transparent field by using a static cast divide by 2
+                pickUpZone.setFillColor(sf::Color(255,255,255,0)); 
+                pickUpZone.setOutlineColor(sf::Color(255,255,255,static_cast<sf::Uint8>(item.alpha/2)));
+                pickUpZone.setOutlineThickness(3.f);
+                window.draw(pickUpZone);
             }
         }
 
