@@ -7,6 +7,7 @@
 class Player {
 public:
 
+    sf::FloatRect Get_Player_Feet_Bounds() const; // для коллизии
     explicit Player(const sf::Vector2u& windowSize);
     ~Player();
     void Draw_Player(sf::RenderWindow& window);
@@ -33,12 +34,16 @@ public:
         );
     }
 
+
 private:
 
     sf::Texture Player_Texture;
 
     sf::Vector2f Player_Velocity;
     float Player_Speed = 600.0f;
+
+    std::vector<sf::Sprite> obstacles;
+    sf::Texture Rock_Texture;
 
     // Текстуры для 8 проекций положения в данный момент
     sf::Texture Player_Texture_Up;

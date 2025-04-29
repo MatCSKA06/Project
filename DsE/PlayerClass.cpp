@@ -32,6 +32,16 @@ Player::Player(const sf::Vector2u& windowSize) : Player_Velocity(0, 0) {
     if (!Player_Texture_GoingUp2.loadFromFile("Assets/Player_Texture_GoingUp2.png"))
         std::cerr << "Error loading texture";
 
+    if (!Rock_Texture.loadFromFile("Assets/Rock.png")) {
+        std::cerr << "Error loading Rock texture\n";
+    }
+
+    sf::Sprite rock;
+    rock.setTexture(Rock_Texture);
+    rock.setPosition(500.f, 300.f); // координаты, куда поставить препятствие
+        
+    obstacles.push_back(rock);
+
     // Устанавливаем положение, в котором спавнится игрок
     Player_Sprite.setTexture(Player_Texture_Down);
 
@@ -46,6 +56,16 @@ Player::Player(const sf::Vector2u& windowSize) : Player_Velocity(0, 0) {
 
 Player::~Player() {
     // Пока пустой деструктор
+}
+
+sf::FloatRect Player::Get_Player_Feet_Bounds() const {
+    sf::FloatRect fullBounds = Player_Sprite.getGlobalBounds();
+    return sf::FloatRect(
+        fullBounds.left,
+        fullBounds.top + fullBounds.height * 0.8f,
+        fullBounds.width,
+        fullBounds.height * 0.2f
+    );
 }
 
 void Player::Keyboard_Handle_Input() { // Движение
@@ -92,13 +112,16 @@ void Player::Keyboard_Handle_Input() { // Движение
 
 
 void Player::Draw_Player(sf::RenderWindow& window) {
+    for (const auto& obstacle : obstacles) {
+        window.draw(obstacle);
+    }
     window.draw(Player_Sprite); // Отрисовка спрайта
 }
 
 void Player::Update_Player_Position(float deltaTime) {
     // Сдвигаем
     Player_Sprite.move(Player_Velocity * Player_Speed * deltaTime);
-
+    
     // Если движется строго вниз — анимируем
     if ((Player_Velocity.y > 0.f) && (Player_Velocity.x == 0.f)) {
         lastDirection = PlayerDirection::Down;
@@ -146,28 +169,28 @@ void Player::Update_Player_Position(float deltaTime) {
     }
     // Если движется вправо и вверх
     else if ((Player_Velocity.x > 0.f) && (Player_Velocity.y > 0.f)) {
-        lastDirection = PlayerDirection::Right;
+        lastDirection = PlayerDirection::DownRight;
         Player_Sprite.setTexture(Player_Texture_DownRight);
         walkDownTimer = 0.f;
         walkDownToggle = false;
     }
     // Если движется вправо и вниз
     else if ((Player_Velocity.x > 0.f) && (Player_Velocity.y < 0.f)) {
-        lastDirection = PlayerDirection::Right;
+        lastDirection = PlayerDirection::UpRight;
         Player_Sprite.setTexture(Player_Texture_UpRight);
         walkDownTimer = 0.f;
         walkDownToggle = false;
     }
     // Если движется влево и вверх
     else if ((Player_Velocity.x < 0.f) && (Player_Velocity.y > 0.f)) {
-        lastDirection = PlayerDirection::Right;
+        lastDirection = PlayerDirection::DownLeft;
         Player_Sprite.setTexture(Player_Texture_DownLeft);
         walkDownTimer = 0.f;
         walkDownToggle = false;
     }
     // Если движется влево и вниз
     else if ((Player_Velocity.x < 0.f) && (Player_Velocity.y < 0.f)) {
-        lastDirection = PlayerDirection::Right;
+        lastDirection = PlayerDirection::UpLeft;
         Player_Sprite.setTexture(Player_Texture_UpLeft);
         walkDownTimer = 0.f;
         walkDownToggle = false;

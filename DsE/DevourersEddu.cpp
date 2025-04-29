@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include "EnemyClass.hpp"
 #include "PlayerClass.hpp"
@@ -34,15 +35,25 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // Загружаем тексуры кнопок в меню
     sf::Texture texPlay, texSettings, texExit;
-    if (!texPlay.loadFromFile("Assets/Button_To_Play_T.png") or
-    // !texSettings.loadFromFile("Assets/Button_To_Settings.png") or
+    if (!texPlay.loadFromFile("Assets/Button_To_Play.png") or
+    !texSettings.loadFromFile("Assets/Button_To_Settings.png") or
     !texExit.loadFromFile("Assets/Button_To_Exit.png"))
     {
         std::cerr << "Error loading menu button textures\n";
     }
 
-
+    // Загружаем текстуры "активных" кнопок в меню
+    sf::Texture texPlayActive, texSettingsActive, texExitActive;
+    if (!texPlayActive.loadFromFile("Assets/Button_To_Play_Active.png") ||
+    !texSettingsActive.loadFromFile("Assets/Button_To_Settings_Active.png") ||
+    !texExitActive.loadFromFile("Assets/Button_To_Exit_Active.png"))
+    {
+        std::cerr << "Error loading active button textures\n";
+    }
+    
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Работаем с начальным логотипом выплывающим
     sf::Texture texLogo;
@@ -54,12 +65,35 @@ int main() {
     logoSprite.setPosition(window.getSize().x / 2.f, window.getSize().y / 2.f); // Центр окна
     logoSprite.setColor(sf::Color(255, 255, 255, 0)); // Сначала полностью прозрачный
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    // 2. Создаём спрайты и выставляем на экране
+    // Создаём спрайты кнопок
     sf::Sprite Button_To_Play(texPlay), 
-    // Button_To_Settings(texSettings), 
+    Button_To_Settings(texSettings), 
     Button_To_Exit(texExit);
+
+    // Создаём спрайты "активных" кнопок
+    sf::Sprite Button_To_Play_Active(texPlayActive), 
+    Button_To_Settings_Active(texSettingsActive), 
+    Button_To_Exit_Active(texExitActive);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Одинаково их позиционируем
+    float x = 1920.f/5 - texPlay.getSize().x/2;
+
+    Button_To_Play.setPosition(x, 800.f);
+    Button_To_Play_Active.setPosition(x, 800.f);
+
+    Button_To_Settings.setPosition(x, 1070.f);
+    Button_To_Settings_Active.setPosition(x, 1070.f);
+
+    Button_To_Exit.setPosition(x, 1340.f);
+    Button_To_Exit_Active.setPosition(x, 1340.f);
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
     sf::Texture texBackground;
     if (!texBackground.loadFromFile("Assets/Menu_Background.png")) {
         std::cerr << "Error loading menu background\n";
@@ -70,12 +104,6 @@ int main() {
     menuBackground.setScale(
     float(winSize.x) / texSize.x,
     float(winSize.y) / texSize.y);
-
-    // Скажем, окно 1920×1080, кнопки по центру, друг под другом
-    float x = 1920.f/5 - texPlay.getSize().x/2;
-    Button_To_Play.setPosition(x, 300.f);
-    // Button_To_Settings.setPosition(x, 470.f);
-    Button_To_Exit.setPosition(x, 640.f);
 
     Enemy MainEnemy(window.getSize());
     Player MainPlayer(window.getSize());
@@ -103,6 +131,21 @@ int main() {
     inventory.addItem("Gun");
     inventory.addItem("Key");
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Звуки и музыка
+    sf::SoundBuffer Splash_Sound;
+    if (!Splash_Sound.loadFromFile("Sounds/Splash_Sound.ogg")) std::cerr<<"Splash sound error\n";
+    sf::Sound SplashSound(Splash_Sound);
+    SplashSound.setVolume(30.0f);
+    SplashSound.play();
+
+    sf::Music Menu_Music;
+    if (!Menu_Music.openFromFile("Music/hxlvv - forgive.ogg")) std::cerr<<"Menu music error\n";
+    Menu_Music.setLoop(true);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
     bool inventoryVisible = false;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,7 +154,7 @@ int main() {
     sf::Clock Splash_Clock; // Таймер заставки
     float Splash_Alpha = 0.f; // Прозрачность
     bool Logo_Fading_In = true;    // Сначала осветляемся
-    const float Fade_Time_Splash = 2.5f;
+    const float Fade_Time_Splash = 1.5f;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -119,7 +162,9 @@ int main() {
     sf::Clock Menu_Fade_Clock; // Таймер плавного появления меню !ТОЛЬКО ПОСЛЕ! заставки
     float Menu_Alpha = 0.f; // исходная прозрачность
     bool  Menu_Fading_In = false;
-    const float Menu_Fade_Time = 1.5f; // длительность Fade In в секундах
+    const float Menu_Fade_Time = 2.5f; // длительность Fade In в секундах
+    const float Menu_Standart_Maximum_Volume = 30.f;
+    float Menu_Volume_Now = 0.0f;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -179,19 +224,19 @@ int main() {
             if (Button_To_Play.getGlobalBounds().contains(Click_Do_Bounds)) {
                 state = GameState::Playing;
             }
-            // else if (Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds)) {
-            //     state = GameState::Settings;
-            // }
+            else if (Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds)) {
+                 state = GameState::Settings;
+             }
             else if (Button_To_Exit.getGlobalBounds().contains(Click_Do_Bounds)) {
                 state = GameState::Exit;
             }
         }
-        // Избегаем багов и на другую кнопку мышки ничего не делаем
-        // if (state == GameState::Menu && event.type == sf::Event::MouseButtonReleased
-        //     && event.mouseButton.button == sf::Mouse::Right)
-        // {
-        //     continue;
-        // }
+        //Избегаем багов и на другую кнопку мышки ничего не делаем
+        if (state == GameState::Menu && event.type == sf::Event::MouseButtonReleased
+            && event.mouseButton.button == sf::Mouse::Right)
+        {
+            continue;
+        }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
     
@@ -233,12 +278,19 @@ int main() {
                 else { // Плавное исчезновение после Fade-In стадии
                     if (Elapsed_Splash_1 > Fade_Time_Splash) {
                         float Elapsed_Splash_2 = Elapsed_Splash_1 - Fade_Time_Splash;
+                        float progress = Elapsed_Splash_2 / Fade_Time_Splash;  
+                        Menu_Music.setVolume(std::min(progress * Menu_Standart_Maximum_Volume, Menu_Standart_Maximum_Volume));
                         Splash_Alpha = std::max(0.f, 255.f - Elapsed_Splash_2 * 255.f / Fade_Time_Splash);
                         if (Elapsed_Splash_2 >= Fade_Time_Splash) {
                             state = GameState::Menu;
                             Menu_Alpha = 0.f;
                             Menu_Fading_In = true;
                             Menu_Fade_Clock.restart();
+
+                                if (Menu_Music.getStatus() != sf::SoundSource::Playing) {
+                                    Menu_Music.play();
+                                    Menu_Music.setVolume(0.f);  // стартуем тихо
+                                }
                         }
                     }
                 }
@@ -253,21 +305,65 @@ int main() {
             // Состояние игры - меню
             case GameState::Menu:{
                 window.setView(Default_View);
+
+                // Лучше Vector2i, потому что дробные координаты в пиксельном мире это так себе
+                sf::Vector2i Pixel_Cursor_Position = sf::Mouse::getPosition(window);
+
+                // Преобразуем пиксельные координаты в мировые с учётом изменений размеров картинок
+                sf::Vector2f Mouse_Cursor_Position = window.mapPixelToCoords(Pixel_Cursor_Position);
+
+                float Elapsed_Menu = Menu_Fade_Clock.getElapsedTime().asSeconds();
+
                 if (Menu_Fading_In) {
-                    float Elapsed_Menu = Menu_Fade_Clock.getElapsedTime().asSeconds();
                     Menu_Alpha = std::min(255.f, Elapsed_Menu * 255.f / Menu_Fade_Time);
-                    if (Menu_Alpha >= 255.f) Menu_Fading_In = false;
+
+                    // На всякий случай заранее спасаемся от багов
+                    if (Menu_Alpha >= 255.f){
+                         Menu_Fading_In = false;
+                    }
                 }
+
+                if (Menu_Fading_In) {
+                    float Menu_Music_Alpha = std::min(Menu_Standart_Maximum_Volume, 
+                                         Elapsed_Menu * Menu_Standart_Maximum_Volume / Menu_Fade_Time);
+                    Menu_Music.setVolume(Menu_Music_Alpha);
+                }
+
+                if (Elapsed_Menu >= Menu_Fade_Time) {
+                    Menu_Fading_In = false;
+                    // На всякий случай зафиксируем полную громкость и непрозрачность
+                    Menu_Alpha = 255.f;
+                    Menu_Volume_Now = Menu_Standart_Maximum_Volume;
+                    Menu_Music.setVolume(Menu_Volume_Now);
+                }
+
                 sf::Uint8 a = static_cast<sf::Uint8>(Menu_Alpha);
                 menuBackground.setColor({255,255,255,a});
+
                 Button_To_Play.setColor({255,255,255,a});
-                // Button_To_Settings.setColor({255,255,255,a});
+                Button_To_Settings.setColor({255,255,255,a});
                 Button_To_Exit.setColor({255,255,255,a});
+
+                Button_To_Play_Active.setColor({255,255,255,a});
+                Button_To_Settings_Active.setColor({255,255,255,a});
+                Button_To_Exit_Active.setColor({255,255,255,a});
             
                 window.draw(menuBackground);
-                window.draw(Button_To_Play);
-                // window.draw(Button_To_Settings);
-                window.draw(Button_To_Exit);
+                if (Button_To_Play.getGlobalBounds().contains(Mouse_Cursor_Position))
+                    window.draw(Button_To_Play_Active);
+                else
+                    window.draw(Button_To_Play);
+
+                if (Button_To_Settings.getGlobalBounds().contains(Mouse_Cursor_Position))
+                    window.draw(Button_To_Settings_Active);
+                else
+                    window.draw(Button_To_Settings);
+
+                if (Button_To_Exit.getGlobalBounds().contains(Mouse_Cursor_Position))
+                    window.draw(Button_To_Exit_Active);
+                else
+                    window.draw(Button_To_Exit);
+
                 break;
             }
 
@@ -339,17 +435,17 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            // // Состояние игры - настройки
-            // case GameState::Settings:{
-            //     window.setView(Default_View);
-            //     // рисуем экран настроек
-            //     // (можно просто вывести текст или другую UI)
-            // break;
-            // }
+            // Состояние игры - настройки
+            case GameState::Settings:{
+                window.setView(Default_View);
+                // рисуем экран настроек
+                // (можно просто вывести текст или другую UI)
+            break;
+            }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            // Состояние игры - ссылки на авторов
+            // Состояние игры - Выход из игры
             case GameState::Exit:{
                 window.close();
             // рисуем экран авторов
