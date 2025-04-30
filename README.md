@@ -1,1 +1,2 @@
-This is a test code for my future game. I use this github for fixing some bugs in my classes.
+This is a test code for our future game. The main folder is DsE. 
+
