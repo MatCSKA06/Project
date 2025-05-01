@@ -119,7 +119,7 @@ int main() {
     sf::View camera(sf::FloatRect(0, 0, 1920, 1080));
     sf::View UIView = window.getDefaultView();
     UIView.move(600.f, 300.f);
-
+//inventory
     Inventory inventory(600.f, 300.f, 4, 4, 150.f); 
     inventory.loadItemTexture("Phone", "Assets/phone.png");
     inventory.registerItemInfo("Phone", "Gadget", "Using to call pididi");
@@ -380,7 +380,7 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                // Это тоже по хорошему (всю логику) впихнуть в класс и вызывать как функции, но пока тут
+                // Это тоже по хорошемinventoryу (всю логику) впихнуть в класс и вызывать как функции, но пока тут
                 for (auto& item : inventory.getDroppedItems()) {
                     window.draw(item.sprite);
                     FloatRect itemBounds = item.sprite.getGlobalBounds();
