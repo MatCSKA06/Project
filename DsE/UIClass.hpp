@@ -39,7 +39,6 @@ private:
     
     sf::RectangleShape infoBox; //adding a table in inventory
     sf::Text infoText; //its too
-    sf::Texture handSlotTexture; 
     std::map<std::string, sf::Texture> itemTextures;
     std::map<std::string, ItemInfo> itemInfoMap;
     std::vector<std::vector<sf::RectangleShape>> grid;

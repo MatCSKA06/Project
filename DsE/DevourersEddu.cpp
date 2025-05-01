@@ -17,7 +17,8 @@ enum class GameState {
     Menu,
     Playing,
     Settings,
-    Exit
+    Exit,
+    Playing_Menu
 };
 
 int main() {
@@ -36,19 +37,21 @@ int main() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Загружаем тексуры кнопок в меню
-    sf::Texture texPlay, texSettings, texExit;
+    sf::Texture texPlay, texSettings, texExit, texQuit;
     if (!texPlay.loadFromFile("Assets/Button_To_Play.png") or
     !texSettings.loadFromFile("Assets/Button_To_Settings.png") or
-    !texExit.loadFromFile("Assets/Button_To_Exit.png"))
+    !texExit.loadFromFile("Assets/Button_To_Exit.png") or
+    !texQuit.loadFromFile("Assets/Button_To_Quit.png"))
     {
         std::cerr << "Error loading menu button textures\n";
     }
 
     // Загружаем текстуры "активных" кнопок в меню
-    sf::Texture texPlayActive, texSettingsActive, texExitActive;
-    if (!texPlayActive.loadFromFile("Assets/Button_To_Play_Active.png") ||
-    !texSettingsActive.loadFromFile("Assets/Button_To_Settings_Active.png") ||
-    !texExitActive.loadFromFile("Assets/Button_To_Exit_Active.png"))
+    sf::Texture texPlayActive, texSettingsActive, texExitActive, texQuitActive;
+    if (!texPlayActive.loadFromFile("Assets/Button_To_Play_Active.png") or
+    !texSettingsActive.loadFromFile("Assets/Button_To_Settings_Active.png") or
+    !texExitActive.loadFromFile("Assets/Button_To_Exit_Active.png") or
+    !texQuitActive.loadFromFile("Assets/Button_To_Quit_Active.png"))
     {
         std::cerr << "Error loading active button textures\n";
     }
@@ -70,40 +73,61 @@ int main() {
     // Создаём спрайты кнопок
     sf::Sprite Button_To_Play(texPlay), 
     Button_To_Settings(texSettings), 
-    Button_To_Exit(texExit);
+    Button_To_Exit(texExit),
+    Button_To_Quit(texQuit);
 
     // Создаём спрайты "активных" кнопок
     sf::Sprite Button_To_Play_Active(texPlayActive), 
     Button_To_Settings_Active(texSettingsActive), 
-    Button_To_Exit_Active(texExitActive);
+    Button_To_Exit_Active(texExitActive),
+    Button_To_Quit_Active(texQuitActive);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Одинаково их позиционируем
-    float x = 1920.f/5 - texPlay.getSize().x/2;
+    // float x = 1920.f/5 - texPlay.getSize().x/2;
 
-    Button_To_Play.setPosition(x, 800.f);
-    Button_To_Play_Active.setPosition(x, 800.f);
+    // Button_To_Play.setPosition(x, 800.f);
+    // Button_To_Play_Active.setPosition(x, 800.f);
 
-    Button_To_Settings.setPosition(x, 1070.f);
-    Button_To_Settings_Active.setPosition(x, 1070.f);
+    // Button_To_Settings.setPosition(x, 1070.f);
+    // Button_To_Settings_Active.setPosition(x, 1070.f);
 
-    Button_To_Exit.setPosition(x, 1340.f);
-    Button_To_Exit_Active.setPosition(x, 1340.f);
-
+    // Button_To_Exit.setPosition(x, 1340.f);
+    // Button_To_Exit_Active.setPosition(x, 1340.f);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    sf::Texture texBackground;
-    if (!texBackground.loadFromFile("Assets/Menu_Background.png")) {
-        std::cerr << "Error loading menu background\n";
+    sf::Texture texMenuBackground, texBackgroundMenuPlayer, texBackgroundSettings;
+    if (!texMenuBackground.loadFromFile("Assets/Menu_Background.png") or
+    !texBackgroundMenuPlayer.loadFromFile("Assets/Playing_Menu_Background.png") or 
+    !texBackgroundSettings.loadFromFile("Assets/Settings_Background.png")) {
+        std::cerr << "Error loading backgrounds\n";
     }
-    sf::Sprite menuBackground(texBackground);
+
+    // Ставим текстуры на спрайты фонов (меню начального, меню внутри игрового процесса)
+    sf::Sprite Menu_Background(texMenuBackground);
+    sf::Sprite Playing_Menu_Background(texBackgroundMenuPlayer);
+    sf::Sprite Settings_Background(texBackgroundSettings);
+
+    // Размер текущего окна (где игра запущена)
     auto winSize = window.getSize();
-    auto texSize = texBackground.getSize();
-    menuBackground.setScale(
-    float(winSize.x) / texSize.x,
-    float(winSize.y) / texSize.y);
+
+    // Собираем размеры наших исходных фонов
+    auto texSizeBackground = texBackgroundMenuPlayer.getSize();
+    auto texSizeBackgroundMenuPlayer = texBackgroundMenuPlayer.getSize();
+    auto texSizeBackgroundSettings = texBackgroundSettings.getSize();
+
+    // Нормируем и ставим размеры спрайтов фонов под текущее разрешение экрана
+    Menu_Background.setScale(
+    float(winSize.x) / texSizeBackground.x,
+    float(winSize.y) / texSizeBackground.y);
+    Playing_Menu_Background.setScale(
+    float(winSize.x) / texSizeBackgroundMenuPlayer.x,
+    float(winSize.y) / texSizeBackgroundMenuPlayer.y);
+    Settings_Background.setScale(
+    float(winSize.x) / texSizeBackgroundSettings.x,
+    float(winSize.y) / texSizeBackgroundSettings.y);
 
     Enemy MainEnemy(window.getSize());
     Player MainPlayer(window.getSize());
@@ -119,7 +143,7 @@ int main() {
     sf::View camera(sf::FloatRect(0, 0, 1920, 1080));
     sf::View UIView = window.getDefaultView();
     UIView.move(600.f, 300.f);
-//inventory
+
     Inventory inventory(600.f, 300.f, 4, 4, 150.f); 
     inventory.loadItemTexture("Phone", "Assets/phone.png");
     inventory.registerItemInfo("Phone", "Gadget", "Using to call pididi");
@@ -142,7 +166,7 @@ int main() {
 
     sf::Music Menu_Music;
     if (!Menu_Music.openFromFile("Music/hxlvv - forgive.ogg")) std::cerr<<"Menu music error\n";
-    Menu_Music.setLoop(true);
+    Menu_Music.setLoop(true); // От слова луп (петля) - залупливаем музыку в меню :)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -173,6 +197,8 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    std::string Last_Action_Checker = "Nothing Happened";
+
     // Всё, что происходит при открытом окне
     while (window.isOpen()) {
         sf::Time dt = clock.restart();
@@ -197,23 +223,80 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            if (event.type == sf::Event::KeyReleased &&
-                event.key.code == sf::Keyboard::Key::Escape)
-            {
-                state = GameState::Menu;     // сразу в меню
-                Menu_Fading_In = false;      // отключаем плавный вход
-                Menu_Alpha = 255.f;      // делаем меню полностью непрозрачным
-            }
-            // if (state == GameState::Menu && event.type == sf::Event::KeyReleased &&
-            //     event.key.code == sf::Keyboard::Key::Escape)
-            // {
-            //     state = GameState::Menu;
-            //     Menu_Fading_In = false;
-            //     Menu_Alpha = 0.f;
-            // }
-        }
+            sf::Vector2f Click_Do_Bounds_Transition = window.mapPixelToCoords({event.mouseButton.x, 
+                event.mouseButton.y});
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            if (state == GameState::Menu && 
+                Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds_Transition) &&
+                ((Last_Action_Checker == "Nothing Happened") or 
+                (Last_Action_Checker == "From Settings to Menu") or
+                Last_Action_Checker == "From Playing_Menu to Menu"))
+            {
+                Last_Action_Checker = "From Menu to Settings";
+            }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            // Работаем с переходом Игра-Меню
+            else if (state == GameState::Menu &&
+                Button_To_Play.getGlobalBounds().contains(Click_Do_Bounds_Transition) &&
+                ((Last_Action_Checker == "Nothing Happened") or 
+                (Last_Action_Checker == "From Playing_Menu to Menu") or
+                Last_Action_Checker == "From Settings to Menu"))
+            {
+                Last_Action_Checker = "From Menu to Playing";
+            }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            // Работаем с переходом Настройки-Игровое_Меню
+            else if (state == GameState::Playing_Menu &&
+                Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds_Transition))
+            {
+                Last_Action_Checker = "From Playing_Menu to Settings";
+            }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            // Работаем с переходом Меню-Игровое_Меню
+            else if (state == GameState::Playing_Menu &&
+            Button_To_Quit.getGlobalBounds().contains(Click_Do_Bounds_Transition) &&
+            ((Last_Action_Checker == "From Playing to Playing_Menu") or
+            (Last_Action_Checker == "From Settings to Playing_Menu")))
+            {
+                Last_Action_Checker = "From Playing_Menu to Menu";
+            }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            // Работаем с переходами, связанными с Escape
+            if (event.type == sf::Event::KeyReleased && 
+                event.key.code == sf::Keyboard::Key::Escape) {
+                if (state == GameState::Playing) {
+                    state = GameState::Playing_Menu;
+                    Last_Action_Checker = "From Playing to Playing_Menu";
+                }
+                else if (state == GameState::Playing_Menu) {
+                    state = GameState::Playing;
+                    Last_Action_Checker = "From Playing_Menu to Playing";
+                }
+                else if (state == GameState::Settings &&
+                (Last_Action_Checker == "From Playing_Menu to Settings")) {
+                    state = GameState::Playing_Menu;
+                    Last_Action_Checker = "From Settings to Playing_Menu";
+                }
+                else if (state == GameState::Settings &&
+                (Last_Action_Checker == "From Menu to Settings")) {
+                    state = GameState::Menu;
+                    Last_Action_Checker = "From Settings to Menu";
+                }
+            }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        }
 
         // Получаем позицию клика в режиме игры - меню, и меняем статус при нажатии соответствующей кнопки
         if (state == GameState::Menu && event.type == sf::Event::MouseButtonReleased
@@ -231,8 +314,30 @@ int main() {
                 state = GameState::Exit;
             }
         }
+
+        if (state == GameState::Playing_Menu && event.type == sf::Event::MouseButtonReleased
+            && event.mouseButton.button == sf::Mouse::Left)
+        {
+            sf::Vector2f Click_Do_Bounds = window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y});
+
+            if (Button_To_Play.getGlobalBounds().contains(Click_Do_Bounds)) {
+                state = GameState::Playing;
+            }
+            else if (Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds)) {
+                 state = GameState::Settings;
+             }
+            else if (Button_To_Quit.getGlobalBounds().contains(Click_Do_Bounds)) {
+                state = GameState::Menu;
+            }
+        }
+
         //Избегаем багов и на другую кнопку мышки ничего не делаем
         if (state == GameState::Menu && event.type == sf::Event::MouseButtonReleased
+            && event.mouseButton.button == sf::Mouse::Right)
+        {
+            continue;
+        }
+        if (state == GameState::Playing_Menu && event.type == sf::Event::MouseButtonReleased
             && event.mouseButton.button == sf::Mouse::Right)
         {
             continue;
@@ -337,8 +442,10 @@ int main() {
                     Menu_Music.setVolume(Menu_Volume_Now);
                 }
 
+                float x = 1920.f/5 - texPlay.getSize().x/2;
+
                 sf::Uint8 a = static_cast<sf::Uint8>(Menu_Alpha);
-                menuBackground.setColor({255,255,255,a});
+                Menu_Background.setColor({255,255,255,a});
 
                 Button_To_Play.setColor({255,255,255,a});
                 Button_To_Settings.setColor({255,255,255,a});
@@ -347,8 +454,17 @@ int main() {
                 Button_To_Play_Active.setColor({255,255,255,a});
                 Button_To_Settings_Active.setColor({255,255,255,a});
                 Button_To_Exit_Active.setColor({255,255,255,a});
+
+                Button_To_Play.setPosition(x, 800.f);
+                Button_To_Play_Active.setPosition(x, 800.f);
             
-                window.draw(menuBackground);
+                Button_To_Settings.setPosition(x, 1070.f);
+                Button_To_Settings_Active.setPosition(x, 1070.f);
+            
+                Button_To_Exit.setPosition(x, 1340.f);
+                Button_To_Exit_Active.setPosition(x, 1340.f);
+            
+                window.draw(Menu_Background);
                 if (Button_To_Play.getGlobalBounds().contains(Mouse_Cursor_Position))
                     window.draw(Button_To_Play_Active);
                 else
@@ -369,6 +485,48 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+            case GameState::Playing_Menu:{
+                window.setView(Default_View);
+                // Лучше Vector2i, потому что дробные координаты в пиксельном мире это так себе
+                sf::Vector2i Pixel_Cursor_Position = sf::Mouse::getPosition(window);
+
+                float x = 1920.f/3 + texPlay.getSize().x/2;
+
+
+                Button_To_Quit.setPosition(x, 1340.f);
+                Button_To_Quit_Active.setPosition(x, 1340.f);
+
+                // Преобразуем пиксельные координаты в мировые с учётом изменений размеров картинок
+                sf::Vector2f Mouse_Cursor_Position = window.mapPixelToCoords(Pixel_Cursor_Position);
+                window.draw(Playing_Menu_Background);
+
+                Button_To_Play.setPosition(x, 800.f);
+                Button_To_Play_Active.setPosition(x, 800.f);
+            
+                Button_To_Settings.setPosition(x, 1070.f);
+                Button_To_Settings_Active.setPosition(x, 1070.f);
+
+                if (Button_To_Play.getGlobalBounds().contains(Mouse_Cursor_Position))
+                    window.draw(Button_To_Play_Active);
+                else
+                    window.draw(Button_To_Play);
+
+                if (Button_To_Settings.getGlobalBounds().contains(Mouse_Cursor_Position))
+                    window.draw(Button_To_Settings_Active);
+                else
+                    window.draw(Button_To_Settings);
+
+                if (Button_To_Quit.getGlobalBounds().contains(Mouse_Cursor_Position))
+                    window.draw(Button_To_Quit_Active);
+                else
+                    window.draw(Button_To_Quit);
+
+                break;
+
+            }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
             // Состояние игры - игровой процесс
             case GameState::Playing:{
                 camera.setCenter(MainPlayer.getCameraCenterOffset());
@@ -380,7 +538,7 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                // Это тоже по хорошемinventoryу (всю логику) впихнуть в класс и вызывать как функции, но пока тут
+                // Это тоже по хорошему (всю логику) впихнуть в класс и вызывать как функции, но пока тут
                 for (auto& item : inventory.getDroppedItems()) {
                     window.draw(item.sprite);
                     FloatRect itemBounds = item.sprite.getGlobalBounds();
@@ -438,6 +596,7 @@ int main() {
             // Состояние игры - настройки
             case GameState::Settings:{
                 window.setView(Default_View);
+                window.draw(Settings_Background);
                 // рисуем экран настроек
                 // (можно просто вывести текст или другую UI)
             break;
