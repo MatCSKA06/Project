@@ -10,8 +10,11 @@
 #include <string>
 #include <vector>
 
-using namespace sf;
+using namespace sf; // Побочка с ссылкой на то, что где-то я упущу этот нюанс в начале
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Разбиение игры по текущим статусам (положениям)
 enum class GameState {
     Splash,
     Menu,
@@ -21,6 +24,22 @@ enum class GameState {
     Playing_Menu
 };
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Функция нормализации размеров спрайтов
+sf::Vector2f Normalize_Sprite_Scale(
+    const sf::Vector2u& windowSize,
+    const sf::Vector2u& spriteSize,
+    float targetWidthRatio = 1.0f,
+    float targetHeightRatio = 1.0f) 
+{
+    float scaleX = (windowSize.x * targetWidthRatio) / static_cast<float>(spriteSize.x);
+    float scaleY = (windowSize.y * targetHeightRatio) / static_cast<float>(spriteSize.y);
+    return sf::Vector2f(scaleX, scaleY);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main() {
     sf::RenderWindow window(
         sf::VideoMode(1920, 1080),
@@ -28,11 +47,40 @@ int main() {
         sf::Style::Fullscreen
     );
     window.setFramerateLimit(60);
+    // Размер текущего окна (где игра запущена)
+    auto winSize = window.getSize();
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Начальный статус игры (заставка)
     GameState state = GameState::Splash;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Загружаем текстуру, ставим спрайт курсора, нормируем его
+    sf::Texture Cursor_Texture;
+    if (!Cursor_Texture.loadFromFile("Assets/Custom_Cursor.png")) {
+        std::cerr << "Error loading cursor texture\n";
+    }
+    sf::Sprite Custom_Cursor(Cursor_Texture);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Работаем с начальным логотипом выплывающим (загружаем, ставим, нормируем, центруем, убираем прозрачность)
+    sf::Texture texLogo;
+    if (!texLogo.loadFromFile("Assets/Company_Logo.png")) {
+        std::cerr << "Error loading company logo\n";
+    }
+    sf::Sprite logoSprite(texLogo);
+
+    sf::Vector2f Logo_Sprite_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                                texLogo.getSize(),
+                                                1.0f, 0.77f);
+    logoSprite.setScale(Logo_Sprite_Now_Size);
+
+    logoSprite.setOrigin(texLogo.getSize().x / 2, texLogo.getSize().y / 2); // Центрируем
+    logoSprite.setPosition(window.getSize().x / 2.f, window.getSize().y / 2.f); // Центр окна
+    logoSprite.setColor(sf::Color(255, 255, 255, 0)); // Сначала полностью прозрачный
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -58,43 +106,62 @@ int main() {
     
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Работаем с начальным логотипом выплывающим
-    sf::Texture texLogo;
-    if (!texLogo.loadFromFile("Assets/Company_Logo.png")) {
-        std::cerr << "Error loading company logo\n";
-    }
-    sf::Sprite logoSprite(texLogo);
-    logoSprite.setOrigin(texLogo.getSize().x / 2, texLogo.getSize().y / 2); // Центрируем
-    logoSprite.setPosition(window.getSize().x / 2.f, window.getSize().y / 2.f); // Центр окна
-    logoSprite.setColor(sf::Color(255, 255, 255, 0)); // Сначала полностью прозрачный
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Создаём спрайты кнопок
+    // Создаём и нормируем спрайты кнопок
     sf::Sprite Button_To_Play(texPlay), 
     Button_To_Settings(texSettings), 
     Button_To_Exit(texExit),
     Button_To_Quit(texQuit);
 
-    // Создаём спрайты "активных" кнопок
+    float targetX = (0.32f/1.2f);
+    float targetY = (0.18f/1.2f);
+
+    sf::Vector2f Button_To_Play_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                            texPlay.getSize(),
+                                            targetX, targetY);
+    Button_To_Play.setScale(Button_To_Play_Now_Size);
+
+    sf::Vector2f Button_To_Settings_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                                texSettings.getSize(),
+                                                targetX, targetY);
+    Button_To_Settings.setScale(Button_To_Settings_Now_Size);
+
+    sf::Vector2f Button_To_Exit_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                            texExit.getSize(),
+                                            targetX, targetY);
+    Button_To_Exit.setScale(Button_To_Exit_Now_Size);
+
+    sf::Vector2f Button_To_Quit_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                            texQuit.getSize(),
+                                            targetX, targetY);
+    Button_To_Quit.setScale(Button_To_Quit_Now_Size);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Создаём и нормируем спрайты "активных" кнопок
     sf::Sprite Button_To_Play_Active(texPlayActive), 
     Button_To_Settings_Active(texSettingsActive), 
     Button_To_Exit_Active(texExitActive),
     Button_To_Quit_Active(texQuitActive);
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+    sf::Vector2f Button_To_Play_Active_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                                    texPlayActive.getSize(),
+                                                    targetX, targetY);
+    Button_To_Play_Active.setScale(Button_To_Play_Active_Now_Size);
 
-    // Одинаково их позиционируем
-    // float x = 1920.f/5 - texPlay.getSize().x/2;
+    sf::Vector2f Button_To_Settings_Active_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                                    texSettingsActive.getSize(),
+                                                    targetX, targetY);
+    Button_To_Settings_Active.setScale(Button_To_Settings_Active_Now_Size);
 
-    // Button_To_Play.setPosition(x, 800.f);
-    // Button_To_Play_Active.setPosition(x, 800.f);
+    sf::Vector2f Button_To_Exit_Active_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                                texExitActive.getSize(),
+                                                targetX, targetY);
+    Button_To_Exit_Active.setScale(Button_To_Exit_Active_Now_Size);
 
-    // Button_To_Settings.setPosition(x, 1070.f);
-    // Button_To_Settings_Active.setPosition(x, 1070.f);
-
-    // Button_To_Exit.setPosition(x, 1340.f);
-    // Button_To_Exit_Active.setPosition(x, 1340.f);
+    sf::Vector2f Button_To_Quit_Active_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                                texQuitActive.getSize(),
+                                                targetX, targetY);
+    Button_To_Quit_Active.setScale(Button_To_Quit_Active_Now_Size);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -110,35 +177,31 @@ int main() {
     sf::Sprite Playing_Menu_Background(texBackgroundMenuPlayer);
     sf::Sprite Settings_Background(texBackgroundSettings);
 
-    // Размер текущего окна (где игра запущена)
-    auto winSize = window.getSize();
-
-    // Собираем размеры наших исходных фонов
-    auto texSizeBackground = texBackgroundMenuPlayer.getSize();
-    auto texSizeBackgroundMenuPlayer = texBackgroundMenuPlayer.getSize();
-    auto texSizeBackgroundSettings = texBackgroundSettings.getSize();
-
     // Нормируем и ставим размеры спрайтов фонов под текущее разрешение экрана
-    Menu_Background.setScale(
-    float(winSize.x) / texSizeBackground.x,
-    float(winSize.y) / texSizeBackground.y);
-    Playing_Menu_Background.setScale(
-    float(winSize.x) / texSizeBackgroundMenuPlayer.x,
-    float(winSize.y) / texSizeBackgroundMenuPlayer.y);
-    Settings_Background.setScale(
-    float(winSize.x) / texSizeBackgroundSettings.x,
-    float(winSize.y) / texSizeBackgroundSettings.y);
+    sf::Vector2f Menu_Background_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                            texMenuBackground.getSize(),
+                                            1.0f, 1.0f);
+    Menu_Background.setScale(Menu_Background_Now_Size);
+
+    sf::Vector2f Playing_Menu_Background_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                                    texBackgroundMenuPlayer.getSize(),
+                                                    1.0f, 1.0f);
+    Playing_Menu_Background.setScale(Playing_Menu_Background_Now_Size);
+
+    sf::Vector2f Settings_Background_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
+                                                texBackgroundSettings.getSize(),
+                                                1.0f, 1.0f);
+    Settings_Background.setScale(Settings_Background_Now_Size);
 
     Enemy MainEnemy(window.getSize());
     Player MainPlayer(window.getSize());
     sf::Clock clock;
 
     sf::Texture backgroundTexture;
-    sf::Sprite backgroundSprite;
     if (!backgroundTexture.loadFromFile("Assets/Background.png")) {
         std::cerr << "Error loading background texture!\n";
     }
-    backgroundSprite.setTexture(backgroundTexture);
+    sf::Sprite backgroundSprite(backgroundTexture);
 
     sf::View camera(sf::FloatRect(0, 0, 1920, 1080));
     sf::View UIView = window.getDefaultView();
@@ -197,7 +260,10 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // Ставим начальный чекер сотояния. *Ничего не произошло*
     std::string Last_Action_Checker = "Nothing Happened";
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Всё, что происходит при открытом окне
     while (window.isOpen()) {
@@ -223,35 +289,28 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+            // Костыль - нужен для шага с проверкой статуса
             sf::Vector2f Click_Do_Bounds_Transition = window.mapPixelToCoords({event.mouseButton.x, 
                 event.mouseButton.y});
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
             if (state == GameState::Menu && 
-                Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds_Transition) &&
-                ((Last_Action_Checker == "Nothing Happened") or 
-                (Last_Action_Checker == "From Settings to Menu") or
-                Last_Action_Checker == "From Playing_Menu to Menu"))
+                Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds_Transition))
             {
                 Last_Action_Checker = "From Menu to Settings";
             }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            // Работаем с переходом Игра-Меню
             else if (state == GameState::Menu &&
-                Button_To_Play.getGlobalBounds().contains(Click_Do_Bounds_Transition) &&
-                ((Last_Action_Checker == "Nothing Happened") or 
-                (Last_Action_Checker == "From Playing_Menu to Menu") or
-                Last_Action_Checker == "From Settings to Menu"))
+                Button_To_Play.getGlobalBounds().contains(Click_Do_Bounds_Transition))
             {
                 Last_Action_Checker = "From Menu to Playing";
             }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            // Работаем с переходом Настройки-Игровое_Меню
             else if (state == GameState::Playing_Menu &&
                 Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds_Transition))
             {
@@ -260,11 +319,8 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            // Работаем с переходом Меню-Игровое_Меню
             else if (state == GameState::Playing_Menu &&
-            Button_To_Quit.getGlobalBounds().contains(Click_Do_Bounds_Transition) &&
-            ((Last_Action_Checker == "From Playing to Playing_Menu") or
-            (Last_Action_Checker == "From Settings to Playing_Menu")))
+                Button_To_Quit.getGlobalBounds().contains(Click_Do_Bounds_Transition))
             {
                 Last_Action_Checker = "From Playing_Menu to Menu";
             }
@@ -360,9 +416,6 @@ int main() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         window.clear();
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
         // Распределение по состояниям игры
         switch (state) {
 
@@ -370,6 +423,7 @@ int main() {
 
             // Состояние игры - заставка
             case GameState::Splash: {
+                window.setMouseCursorVisible(false);
                 window.setView(Default_View);
                 float Elapsed_Splash_1 = Splash_Clock.getElapsedTime().asSeconds();
             
@@ -409,6 +463,7 @@ int main() {
 
             // Состояние игры - меню
             case GameState::Menu:{
+                window.setMouseCursorVisible(false);
                 window.setView(Default_View);
 
                 // Лучше Vector2i, потому что дробные координаты в пиксельном мире это так себе
@@ -442,7 +497,9 @@ int main() {
                     Menu_Music.setVolume(Menu_Volume_Now);
                 }
 
-                float x = 1920.f/5 - texPlay.getSize().x/2;
+                auto Window_Size_Now = window.getSize();
+                float x = Window_Size_Now.x/5 - Button_To_Play.getScale().x/2;
+                // std::cout << Window_Size_Now.x << texPlay.getSize().x << std::endl;
 
                 sf::Uint8 a = static_cast<sf::Uint8>(Menu_Alpha);
                 Menu_Background.setColor({255,255,255,a});
@@ -486,25 +543,27 @@ int main() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
             case GameState::Playing_Menu:{
+                window.setMouseCursorVisible(false);
                 window.setView(Default_View);
                 // Лучше Vector2i, потому что дробные координаты в пиксельном мире это так себе
                 sf::Vector2i Pixel_Cursor_Position = sf::Mouse::getPosition(window);
 
-                float x = 1920.f/3 + texPlay.getSize().x/2;
-
-
-                Button_To_Quit.setPosition(x, 1340.f);
-                Button_To_Quit_Active.setPosition(x, 1340.f);
+                auto Window_Size_Now = window.getSize();
+                float x = Window_Size_Now.x/2 - Button_To_Quit.getScale().x/2;
+                std::cout << Window_Size_Now.x/2 << std::endl;
 
                 // Преобразуем пиксельные координаты в мировые с учётом изменений размеров картинок
                 sf::Vector2f Mouse_Cursor_Position = window.mapPixelToCoords(Pixel_Cursor_Position);
                 window.draw(Playing_Menu_Background);
 
-                Button_To_Play.setPosition(x, 800.f);
-                Button_To_Play_Active.setPosition(x, 800.f);
+                Button_To_Play.setPosition(x, 500.f);
+                Button_To_Play_Active.setPosition(x, 500.f);
             
-                Button_To_Settings.setPosition(x, 1070.f);
-                Button_To_Settings_Active.setPosition(x, 1070.f);
+                Button_To_Settings.setPosition(x, 770.f);
+                Button_To_Settings_Active.setPosition(x, 770.f);
+
+                Button_To_Quit.setPosition(x, 1040.f);
+                Button_To_Quit_Active.setPosition(x, 1040.f);
 
                 if (Button_To_Play.getGlobalBounds().contains(Mouse_Cursor_Position))
                     window.draw(Button_To_Play_Active);
@@ -529,6 +588,7 @@ int main() {
 
             // Состояние игры - игровой процесс
             case GameState::Playing:{
+                window.setMouseCursorVisible(false);
                 camera.setCenter(MainPlayer.getCameraCenterOffset());
                 window.setView(camera);
                 window.draw(backgroundSprite);
@@ -594,6 +654,7 @@ int main() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // Состояние игры - настройки
+            window.setMouseCursorVisible(false);
             case GameState::Settings:{
                 window.setView(Default_View);
                 window.draw(Settings_Background);
