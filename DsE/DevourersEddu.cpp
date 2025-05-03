@@ -21,7 +21,8 @@ enum class GameState {
     Playing,
     Settings,
     Exit,
-    Playing_Menu
+    Playing_Menu,
+    Loading_Screen
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,11 +31,11 @@ enum class GameState {
 sf::Vector2f Normalize_Sprite_Scale(
     const sf::Vector2u& windowSize,
     const sf::Vector2u& spriteSize,
-    float targetWidthRatio = 1.0f,
-    float targetHeightRatio = 1.0f) 
+    float targetWidth = 1.0f,
+    float targetHeight = 1.0f) 
 {
-    float scaleX = (windowSize.x * targetWidthRatio) / static_cast<float>(spriteSize.x);
-    float scaleY = (windowSize.y * targetHeightRatio) / static_cast<float>(spriteSize.y);
+    float scaleX = (windowSize.x * targetWidth) / static_cast<float>(spriteSize.x);
+    float scaleY = (windowSize.y * targetHeight) / static_cast<float>(spriteSize.y);
     return sf::Vector2f(scaleX, scaleY);
 }
 
@@ -58,11 +59,11 @@ int main() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Загружаем текстуру, ставим спрайт курсора, нормируем его
-    sf::Texture Cursor_Texture;
-    if (!Cursor_Texture.loadFromFile("Assets/Custom_Cursor.png")) {
-        std::cerr << "Error loading cursor texture\n";
-    }
-    sf::Sprite Custom_Cursor(Cursor_Texture);
+    // sf::Texture Cursor_Texture;
+    // if (!Cursor_Texture.loadFromFile("Assets/Custom_Cursor.png")) {
+    //     std::cerr << "Error loading cursor texture\n";
+    // }
+    // sf::Sprite Custom_Cursor(Cursor_Texture);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -74,8 +75,8 @@ int main() {
     sf::Sprite logoSprite(texLogo);
 
     sf::Vector2f Logo_Sprite_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
-                                                texLogo.getSize(),
-                                                1.0f, 0.77f);
+                                                                texLogo.getSize(),
+                                                                1.0f, 0.77f);
     logoSprite.setScale(Logo_Sprite_Now_Size);
 
     logoSprite.setOrigin(texLogo.getSize().x / 2, texLogo.getSize().y / 2); // Центрируем
@@ -135,6 +136,8 @@ int main() {
                                             targetX, targetY);
     Button_To_Quit.setScale(Button_To_Quit_Now_Size);
 
+    // std::cout << Button_To_Quit.getScale().x << " " << Button_To_Quit_Now_Size.x << std::endl;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Создаём и нормируем спрайты "активных" кнопок
@@ -152,6 +155,8 @@ int main() {
                                                     texSettingsActive.getSize(),
                                                     targetX, targetY);
     Button_To_Settings_Active.setScale(Button_To_Settings_Active_Now_Size);
+    // std::cout << Button_To_Settings_Active_Now_Size.x <<
+    // Button_To_Settings_Active_Now_Size.y << std::endl;
 
     sf::Vector2f Button_To_Exit_Active_Now_Size = Normalize_Sprite_Scale(window.getSize(), 
                                                 texExitActive.getSize(),
@@ -260,7 +265,7 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Ставим начальный чекер сотояния. *Ничего не произошло*
+    // Ставим начальный чекер сотояния (флаг). *Ничего не произошло*
     std::string Last_Action_Checker = "Nothing Happened";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,26 +308,10 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            else if (state == GameState::Menu &&
-                Button_To_Play.getGlobalBounds().contains(Click_Do_Bounds_Transition))
-            {
-                Last_Action_Checker = "From Menu to Playing";
-            }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
             else if (state == GameState::Playing_Menu &&
                 Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds_Transition))
             {
                 Last_Action_Checker = "From Playing_Menu to Settings";
-            }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            else if (state == GameState::Playing_Menu &&
-                Button_To_Quit.getGlobalBounds().contains(Click_Do_Bounds_Transition))
-            {
-                Last_Action_Checker = "From Playing_Menu to Menu";
             }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -332,11 +321,9 @@ int main() {
                 event.key.code == sf::Keyboard::Key::Escape) {
                 if (state == GameState::Playing) {
                     state = GameState::Playing_Menu;
-                    Last_Action_Checker = "From Playing to Playing_Menu";
                 }
                 else if (state == GameState::Playing_Menu) {
                     state = GameState::Playing;
-                    Last_Action_Checker = "From Playing_Menu to Playing";
                 }
                 else if (state == GameState::Settings &&
                 (Last_Action_Checker == "From Playing_Menu to Settings")) {
@@ -352,65 +339,6 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        }
-
-        // Получаем позицию клика в режиме игры - меню, и меняем статус при нажатии соответствующей кнопки
-        if (state == GameState::Menu && event.type == sf::Event::MouseButtonReleased
-            && event.mouseButton.button == sf::Mouse::Left)
-        {
-            sf::Vector2f Click_Do_Bounds = window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y});
-
-            if (Button_To_Play.getGlobalBounds().contains(Click_Do_Bounds)) {
-                state = GameState::Playing;
-            }
-            else if (Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds)) {
-                 state = GameState::Settings;
-             }
-            else if (Button_To_Exit.getGlobalBounds().contains(Click_Do_Bounds)) {
-                state = GameState::Exit;
-            }
-        }
-
-        if (state == GameState::Playing_Menu && event.type == sf::Event::MouseButtonReleased
-            && event.mouseButton.button == sf::Mouse::Left)
-        {
-            sf::Vector2f Click_Do_Bounds = window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y});
-
-            if (Button_To_Play.getGlobalBounds().contains(Click_Do_Bounds)) {
-                state = GameState::Playing;
-            }
-            else if (Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds)) {
-                 state = GameState::Settings;
-             }
-            else if (Button_To_Quit.getGlobalBounds().contains(Click_Do_Bounds)) {
-                state = GameState::Menu;
-            }
-        }
-
-        //Избегаем багов и на другую кнопку мышки ничего не делаем
-        if (state == GameState::Menu && event.type == sf::Event::MouseButtonReleased
-            && event.mouseButton.button == sf::Mouse::Right)
-        {
-            continue;
-        }
-        if (state == GameState::Playing_Menu && event.type == sf::Event::MouseButtonReleased
-            && event.mouseButton.button == sf::Mouse::Right)
-        {
-            continue;
-        }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-        // Кусочек логики инвентаря
-        if (Keyboard::isKeyPressed(Keyboard::Key::I)) {
-            inventoryVisible = !inventoryVisible;
-            inventory.setVisibility(inventoryVisible);
-            while (Keyboard::isKeyPressed(Keyboard::Key::I)) {}
-        }
-
-        if (!inventoryVisible) {
-            MainPlayer.Keyboard_Handle_Input();
-            MainPlayer.Update_Player_Position(deltaTime);
         }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -453,6 +381,7 @@ int main() {
                         }
                     }
                 }
+
             
                 logoSprite.setColor(sf::Color(255,255,255, static_cast<Uint8>(Splash_Alpha)));
                 window.draw(logoSprite);
@@ -473,6 +402,23 @@ int main() {
                 sf::Vector2f Mouse_Cursor_Position = window.mapPixelToCoords(Pixel_Cursor_Position);
 
                 float Elapsed_Menu = Menu_Fade_Clock.getElapsedTime().asSeconds();
+
+                // Получаем позицию клика в режиме игры - меню, и меняем статус при нажатии соответствующей кнопки
+                if (event.type == sf::Event::MouseButtonReleased
+                    && event.mouseButton.button == sf::Mouse::Left)
+                {
+                    sf::Vector2f Click_Do_Bounds = window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y});
+
+                    if (Button_To_Play.getGlobalBounds().contains(Click_Do_Bounds)) {
+                        state = GameState::Playing;
+                    }
+                    else if (Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds)) {
+                        state = GameState::Settings;
+                    }
+                    else if (Button_To_Exit.getGlobalBounds().contains(Click_Do_Bounds)) {
+                        state = GameState::Exit;
+                    }
+                }
 
                 if (Menu_Fading_In) {
                     Menu_Alpha = std::min(255.f, Elapsed_Menu * 255.f / Menu_Fade_Time);
@@ -498,7 +444,9 @@ int main() {
                 }
 
                 auto Window_Size_Now = window.getSize();
-                float x = Window_Size_Now.x/5 - Button_To_Play.getScale().x/2;
+                float x = Window_Size_Now.x/40;
+                float y = Window_Size_Now.y/2.35f;
+                float delta_y = (Button_To_Quit.getScale().y * texQuit.getSize().y) * (1.3f);
                 // std::cout << Window_Size_Now.x << texPlay.getSize().x << std::endl;
 
                 sf::Uint8 a = static_cast<sf::Uint8>(Menu_Alpha);
@@ -512,14 +460,14 @@ int main() {
                 Button_To_Settings_Active.setColor({255,255,255,a});
                 Button_To_Exit_Active.setColor({255,255,255,a});
 
-                Button_To_Play.setPosition(x, 800.f);
-                Button_To_Play_Active.setPosition(x, 800.f);
+                Button_To_Play.setPosition(x, y);
+                Button_To_Play_Active.setPosition(x, y);
             
-                Button_To_Settings.setPosition(x, 1070.f);
-                Button_To_Settings_Active.setPosition(x, 1070.f);
+                Button_To_Settings.setPosition(x, (y + delta_y));
+                Button_To_Settings_Active.setPosition(x, (y + delta_y));
             
-                Button_To_Exit.setPosition(x, 1340.f);
-                Button_To_Exit_Active.setPosition(x, 1340.f);
+                Button_To_Exit.setPosition(x, (y + 2*delta_y));
+                Button_To_Exit_Active.setPosition(x, (y + 2*delta_y));
             
                 window.draw(Menu_Background);
                 if (Button_To_Play.getGlobalBounds().contains(Mouse_Cursor_Position))
@@ -542,6 +490,14 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+            case GameState::Loading_Screen:{
+                window.setView(Default_View);
+                window.setMouseCursorVisible(false);
+
+            }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
             case GameState::Playing_Menu:{
                 window.setMouseCursorVisible(false);
                 window.setView(Default_View);
@@ -549,21 +505,39 @@ int main() {
                 sf::Vector2i Pixel_Cursor_Position = sf::Mouse::getPosition(window);
 
                 auto Window_Size_Now = window.getSize();
-                float x = Window_Size_Now.x/2 - Button_To_Quit.getScale().x/2;
-                std::cout << Window_Size_Now.x/2 << std::endl;
+                float x = Window_Size_Now.x/2 - (Button_To_Quit.getScale().x * texQuit.getSize().x)/2;
+                // std::cout << x << std::endl; // проверка на работоспособность прошла успешно
+                float y = Window_Size_Now.y/4.5f;
+                float delta_y = (Button_To_Quit.getScale().y * texQuit.getSize().y) * (1.35f);
 
                 // Преобразуем пиксельные координаты в мировые с учётом изменений размеров картинок
                 sf::Vector2f Mouse_Cursor_Position = window.mapPixelToCoords(Pixel_Cursor_Position);
                 window.draw(Playing_Menu_Background);
 
-                Button_To_Play.setPosition(x, 500.f);
-                Button_To_Play_Active.setPosition(x, 500.f);
-            
-                Button_To_Settings.setPosition(x, 770.f);
-                Button_To_Settings_Active.setPosition(x, 770.f);
+                if (event.type == sf::Event::MouseButtonReleased
+                    && event.mouseButton.button == sf::Mouse::Left)
+                {
+                    sf::Vector2f Click_Do_Bounds = window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y});
+        
+                    if (Button_To_Play.getGlobalBounds().contains(Click_Do_Bounds)) {
+                        state = GameState::Playing;
+                    }
+                    else if (Button_To_Settings.getGlobalBounds().contains(Click_Do_Bounds)) {
+                         state = GameState::Settings;
+                     }
+                    else if (Button_To_Quit.getGlobalBounds().contains(Click_Do_Bounds)) {
+                        state = GameState::Menu;
+                    }
+                }
 
-                Button_To_Quit.setPosition(x, 1040.f);
-                Button_To_Quit_Active.setPosition(x, 1040.f);
+                Button_To_Play.setPosition(x, y);
+                Button_To_Play_Active.setPosition(x, (y));
+            
+                Button_To_Settings.setPosition(x, (y + delta_y));
+                Button_To_Settings_Active.setPosition(x, (y + delta_y));
+
+                Button_To_Quit.setPosition(x, (y + 2*delta_y));
+                Button_To_Quit_Active.setPosition(x, (y + 2*delta_y));
 
                 if (Button_To_Play.getGlobalBounds().contains(Mouse_Cursor_Position))
                     window.draw(Button_To_Play_Active);
@@ -588,6 +562,17 @@ int main() {
 
             // Состояние игры - игровой процесс
             case GameState::Playing:{
+                // Кусочек логики инвентаря
+                if (Keyboard::isKeyPressed(Keyboard::Key::I)) {
+                    inventoryVisible = !inventoryVisible;
+                    inventory.setVisibility(inventoryVisible);
+                    while (Keyboard::isKeyPressed(Keyboard::Key::I)) {}
+                }
+
+                if (!inventoryVisible) {
+                    MainPlayer.Keyboard_Handle_Input();
+                    MainPlayer.Update_Player_Position(deltaTime);
+                }
                 window.setMouseCursorVisible(false);
                 camera.setCenter(MainPlayer.getCameraCenterOffset());
                 window.setView(camera);
@@ -639,7 +624,6 @@ int main() {
                             ++it;
                         }
                     }
-                    while (Keyboard::isKeyPressed(Keyboard::Key::E)) {}
                 }
 
                 window.setView(UIView);
@@ -654,8 +638,8 @@ int main() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // Состояние игры - настройки
-            window.setMouseCursorVisible(false);
             case GameState::Settings:{
+                window.setMouseCursorVisible(false);
                 window.setView(Default_View);
                 window.draw(Settings_Background);
                 // рисуем экран настроек
