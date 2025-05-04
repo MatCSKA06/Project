@@ -584,7 +584,11 @@ int main() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
                 // Это тоже по хорошему (всю логику) впихнуть в класс и вызывать как функции, но пока тут
-                for (auto& item : inventory.getDroppedItems()) {
+
+                MainEnemy.UpdatePosition(MainPlayer.getPosition(), deltaTime, 0.1f); // Скорость x0.1 от дистанции
+MainEnemy.UpdateSpriteDirection(MainPlayer.getPosition());
+
+		for (auto& item : inventory.getDroppedItems()) {
                     window.draw(item.sprite);
                     FloatRect itemBounds = item.sprite.getGlobalBounds();
                     FloatRect characterBounds = MainPlayer.getGlobalBounds();
@@ -650,7 +654,8 @@ int main() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // Состояние игры - Выход из игры
-            case GameState::Exit:{
+	    case GameState::Exit:{
+		Menu_Music.stop();
                 window.close();
             // рисуем экран авторов
                 break;
