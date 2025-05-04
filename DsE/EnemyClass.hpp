@@ -16,7 +16,17 @@ public:
 
     void Draw_Enemy(sf::RenderWindow& window);
 
+// Новые методы (добавленные для динамической скорости)
+    void UpdatePosition(const sf::Vector2f& playerPos, float deltaTime, float speedCoeff = 0.05f);
+    void UpdateSpriteDirection(const sf::Vector2f& playerPos);
+   
+
+
 private:
+    sf::Vector2f position;
+    
+
+
     std::vector<float> Const_Meaning_of_MainEnemy_Player_radius;
     std::vector<float> Const_Meaning_of_MainEnemy_Velocity;
 

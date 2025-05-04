@@ -12,6 +12,9 @@ Inventory::Inventory(float x, float y, int rows, int columns, float size)
 {
     font.loadFromFile("Fonts/arialmt.ttf");
     phoneTexture.loadFromFile("Assets/phone.png");
+    if (!font.loadFromFile("Fonts/arialmt.ttf")) {
+    throw std::runtime_error("Failed to load font: Fonts/arialmt.ttf");
+}
     inventoryBackroundTexture.loadFromFile("Assets/Inventory.png");
     inventoryBackroundSprite.setTexture(inventoryBackroundTexture);
     inventoryBackroundSprite.setPosition(x, y);
@@ -91,7 +94,6 @@ Inventory::Inventory(float x, float y, int rows, int columns, float size)
 
 
 }
-
 void Inventory::updateCursorPosition() {
     cursor.setPosition(position.x + cursorX * size, position.y + cursorY * size);
 }

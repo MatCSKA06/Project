@@ -7,6 +7,7 @@ Enemy::Enemy(const sf::Vector2u& windowSize) { // Выставляем нача�
     Const_Meaning_of_MainEnemy_Player_radius.reserve(20);
     Const_Meaning_of_MainEnemy_Velocity.reserve(20);
 
+
     for (float i = 0.0f; i <= 2.0f; i += 0.1f) {
         Const_Meaning_of_MainEnemy_Player_radius.push_back(roundf(i * 10) / 10);
     }
@@ -32,14 +33,16 @@ Enemy::Enemy(const sf::Vector2u& windowSize) { // Выставляем нача�
     float Window_Center_X = windowSize.x / 5.0f;
     float Window_Center_Y = windowSize.y / 4.0f;
 
-    float Position_Of_MainEnemy_Spawn_X = Window_Center_X - ((Texture_Size_MainEnemy.x) / 2.0f);
-    float Position_Of_MainEnemy_Spawn_Y = Window_Center_Y - ((Texture_Size_MainEnemy.y) / 2.0f);
-    Enemy_Sprite.setPosition(Position_Of_MainEnemy_Spawn_X, Position_Of_MainEnemy_Spawn_Y);
+    position.x = Window_Center_X - (Texture_Size_MainEnemy.x / 2.0f);
+    position.y = Window_Center_Y - (Texture_Size_MainEnemy.y / 2.0f);
+    Enemy_Sprite.setPosition(position);
 }
-
-Enemy::~Enemy() {
-    // Деструктор (пока пустой)
-}
+    Enemy::~Enemy() {
+	MainEnemy_Texture_Up.~Texture();
+    	MainEnemy_Texture_Down.~Texture();
+    	MainEnemy_Texture_Left.~Texture();
+    	MainEnemy_Texture_Right.~Texture();
+    }
 
 
 
@@ -57,9 +60,38 @@ float Enemy::Meaning_of_Velocity_gradient(float MainEnemy_Player_radius) {
     throw std::runtime_error("Враг слишком далеко");
 }
 
+void Enemy::UpdatePosition(const sf::Vector2f& playerPos, float deltaTime, float speedCoeff) {
+    sf::Vector2f enemyPos = Enemy_Sprite.getPosition();
+    sf::Vector2f direction = playerPos - enemyPos;
+    float distance = std::hypot(direction.x, direction.y);
+    
+    if (distance > 0.0f) {
+        direction /= distance;
+    }
+    
+    float speed = distance * speedCoeff;
+    Enemy_Sprite.move(direction * speed * deltaTime);
+}
 
+void Enemy::UpdateSpriteDirection(const sf::Vector2f& playerPos) {
+    sf::Vector2f enemyPos = Enemy_Sprite.getPosition();
+    sf::Vector2f direction = playerPos - enemyPos;
+    
+    if (std::abs(direction.x) > std::abs(direction.y)) {
+        if (direction.x > 0) {
+            Enemy_Sprite.setTexture(MainEnemy_Texture_Right);
+        } else {
+            Enemy_Sprite.setTexture(MainEnemy_Texture_Left);
+        }
+    } else {
+        if (direction.y > 0) {
+            Enemy_Sprite.setTexture(MainEnemy_Texture_Down);
+        } else {
+            Enemy_Sprite.setTexture(MainEnemy_Texture_Up);
+        }
+    }
+}
 void Enemy::Draw_Enemy(sf::RenderWindow& window) {
     window.draw(Enemy_Sprite); // Отрисовка спрайта
 }
-
 

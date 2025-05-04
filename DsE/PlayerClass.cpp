@@ -54,9 +54,9 @@ Player::Player(const sf::Vector2u& windowSize) : Player_Velocity(0, 0) {
     Player_Sprite.setPosition(Position_Of_Player_Spawn_X, Position_Of_Player_Spawn_Y);
 }
 
-Player::~Player() {
+Player::~Player() = default;
+
     // Пока пустой деструктор
-}
 
 sf::FloatRect Player::Get_Player_Feet_Bounds() const {
     sf::FloatRect fullBounds = Player_Sprite.getGlobalBounds();

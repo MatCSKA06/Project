@@ -91,4 +91,6 @@ public:
     const std::vector<DroppedItem>& getDroppedItems() const;
     std::vector<DroppedItem>& getDroppedItems();
     sf::Sprite dropHeldItem();
+    Inventory(const Inventory&) = delete;
+    Inventory& operator=(const Inventory&) = delete;
 };
