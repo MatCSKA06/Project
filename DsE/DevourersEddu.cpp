@@ -4,6 +4,7 @@
 #include "EnemyClass.hpp"
 #include "PlayerClass.hpp"
 #include "UIClass.hpp"
+#include "MapClass.hpp"
 #include <algorithm>
 #include <map>
 #include <cmath>
@@ -12,6 +13,8 @@
 
 using namespace sf; // Побочка с ссылкой на то, что где-то я упущу этот нюанс в начале
 
+// ПО ВСЕМУ ПРОЕКТУ ИСПОЛЬЗОВАНЫ STL КОНТЕЙНЕРЫ!
+// И КЛАССЫ!
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Разбиение игры по текущим статусам (положениям)
@@ -38,6 +41,22 @@ sf::Vector2f Normalize_Sprite_Scale(
     float scaleY = (windowSize.y * targetHeight) / static_cast<float>(spriteSize.y);
     return sf::Vector2f(scaleX, scaleY);
 }
+
+// // Функция для нормального появления игрока не в стене
+// sf::Vector2f FindSpawnPositionOnFloor(const Map& gameMap) {
+//     float tileSize = gameMap.Get_Tile_Size();
+
+//     for (int y = 1; y <  gameMap.Get_Height(); ++y) {
+//         for (int x = 1; x < gameMap.Get_Width(); ++x) {
+//             if (gameMap.Get_Tile_Type(x, y) == TileType::floor) {
+//                 return sf::Vector2f(x * tileSize, y * tileSize);
+//             }
+//         }
+//     }
+
+//     // Если не нашли
+//     return sf::Vector2f(0.f, 0.f);
+// }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -265,6 +284,21 @@ int main() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    float TileSize = 600.0f; // Ставим размер плитки
+    int MapWidth = 100;
+    int MapHeight = 100;
+    
+    Map GameMap(MapWidth, MapHeight, TileSize);
+    GameMap.Load_Tile_Texture(TileType::floor, "Assets/Map_Tile_1.png");
+    GameMap.Load_Tile_Texture(TileType::Wall,  "Assets/Map_Tile_2.png");
+
+    // Гененрируем простейшую карту
+    GameMap.Generate_Simple_Map();
+    //Генерим лабиринт
+    // GameMap.Generate_Labyrinth();
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
     // Ставим начальный чекер сотояния (флаг). *Ничего не произошло*
     std::string Last_Action_Checker = "Nothing Happened";
 
@@ -460,14 +494,14 @@ int main() {
                 Button_To_Settings_Active.setColor({255,255,255,a});
                 Button_To_Exit_Active.setColor({255,255,255,a});
 
-                Button_To_Play.setPosition(x, y);
-                Button_To_Play_Active.setPosition(x, y);
+                Button_To_Play.setPosition({x, y});
+                Button_To_Play_Active.setPosition({x, y});
             
-                Button_To_Settings.setPosition(x, (y + delta_y));
-                Button_To_Settings_Active.setPosition(x, (y + delta_y));
+                Button_To_Settings.setPosition({x, (y + delta_y)});
+                Button_To_Settings_Active.setPosition({x, (y + delta_y)});
             
-                Button_To_Exit.setPosition(x, (y + 2*delta_y));
-                Button_To_Exit_Active.setPosition(x, (y + 2*delta_y));
+                Button_To_Exit.setPosition({x, (y + 2*delta_y)});
+                Button_To_Exit_Active.setPosition({x, (y + 2*delta_y)});
             
                 window.draw(Menu_Background);
                 if (Button_To_Play.getGlobalBounds().contains(Mouse_Cursor_Position))
@@ -529,15 +563,16 @@ int main() {
                         state = GameState::Menu;
                     }
                 }
-
-                Button_To_Play.setPosition(x, y);
-                Button_To_Play_Active.setPosition(x, (y));
+                //sf::Vector2f Gay(x, y);
+                //sf::Vector2f({x, y});
+                Button_To_Play.setPosition({x, y});
+                Button_To_Play_Active.setPosition({x, y});
             
-                Button_To_Settings.setPosition(x, (y + delta_y));
-                Button_To_Settings_Active.setPosition(x, (y + delta_y));
+                Button_To_Settings.setPosition({x, (y + delta_y)});
+                Button_To_Settings_Active.setPosition({x, (y + delta_y)});
 
-                Button_To_Quit.setPosition(x, (y + 2*delta_y));
-                Button_To_Quit_Active.setPosition(x, (y + 2*delta_y));
+                Button_To_Quit.setPosition({x, (y + 2*delta_y)});
+                Button_To_Quit_Active.setPosition({x, (y + 2*delta_y)});
 
                 if (Button_To_Play.getGlobalBounds().contains(Mouse_Cursor_Position))
                     window.draw(Button_To_Play_Active);
@@ -571,13 +606,17 @@ int main() {
 
                 if (!inventoryVisible) {
                     MainPlayer.Keyboard_Handle_Input();
-                    MainPlayer.Update_Player_Position(deltaTime);
+                    MainPlayer.Update_Player_Position(deltaTime, GameMap);
                 }
                 window.setMouseCursorVisible(false);
                 camera.setCenter(MainPlayer.getCameraCenterOffset());
                 window.setView(camera);
-                window.draw(backgroundSprite);
+                // window.draw(backgroundSprite); // Оставим ради памяти
+                // Рисуем карту
+                GameMap.Draw_Map(window);
+                // Рисуем врага
                 MainEnemy.Draw_Enemy(window);
+                // Рисуем игрока
                 MainPlayer.Draw_Player(window);
 
 
@@ -585,10 +624,10 @@ int main() {
 
                 // Это тоже по хорошему (всю логику) впихнуть в класс и вызывать как функции, но пока тут
 
-                MainEnemy.UpdatePosition(MainPlayer.getPosition(), deltaTime, 0.1f); // Скорость x0.1 от дистанции
-MainEnemy.UpdateSpriteDirection(MainPlayer.getPosition());
+                MainEnemy.UpdatePosition(MainPlayer.getPosition(), deltaTime, 0.3f); // Скорость x0.1 от дистанции
+                MainEnemy.UpdateSpriteDirection(MainPlayer.getPosition());
 
-		for (auto& item : inventory.getDroppedItems()) {
+		        for (auto& item : inventory.getDroppedItems()) {
                     window.draw(item.sprite);
                     FloatRect itemBounds = item.sprite.getGlobalBounds();
                     FloatRect characterBounds = MainPlayer.getGlobalBounds();
@@ -657,7 +696,6 @@ MainEnemy.UpdateSpriteDirection(MainPlayer.getPosition());
 	    case GameState::Exit:{
 		Menu_Music.stop();
                 window.close();
-            // рисуем экран авторов
                 break;
             }
 

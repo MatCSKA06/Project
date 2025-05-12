@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include "MapClass.hpp"
 #include <string>
 #include <vector>
 
@@ -8,11 +9,11 @@ class Player {
 public:
 
     sf::FloatRect Get_Player_Feet_Bounds() const; // для коллизии
-    explicit Player(const sf::Vector2u& windowSize);
+    explicit Player(const sf::Vector2u& windowSize, sf::Vector2f spawnPos = sf::Vector2f(600.f, 600.f));
     ~Player();
     void Draw_Player(sf::RenderWindow& window);
     void Keyboard_Handle_Input(); 
-    void Update_Player_Position(float deltaTime);
+    void Update_Player_Position(float deltaTime, const Map& GameMap);
 
     sf::Sprite Player_Sprite;
 

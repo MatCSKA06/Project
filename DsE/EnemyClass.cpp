@@ -94,4 +94,3 @@ void Enemy::UpdateSpriteDirection(const sf::Vector2f& playerPos) {
 void Enemy::Draw_Enemy(sf::RenderWindow& window) {
     window.draw(Enemy_Sprite); // Отрисовка спрайта
 }
-
